@@ -16,7 +16,7 @@ parser = Parser(datasets)
 df_train, df_val, df_test = Splitting().holdout(parser.get_sentences(), size=1)
 
 param = {
-    "lr": 0.009,
+    "lr": 0.007,
     "momentum": 0.9,
     "weight_decay": 0,
 
