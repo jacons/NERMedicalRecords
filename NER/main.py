@@ -2,15 +2,14 @@ from Model import BertModel
 from Parser import Parser, Splitting
 from Training import train
 
-folder = "/content/drive/MyDrive/NERForMedicalRecords/"
+# folder = "/content/drive/MyDrive/NERForMedicalRecords/"
 # folder = "/content/drive/Othercomputers/Il mio Laptop/Universita/[IA] Artificial Intelligence/[HLT] Human Language Technologies/NERforMedicalRecords/"
-# folder = "/content/drive/MyDrive/NERforMedicalRecords/"
+folder = "./../../NERForMedicalRecords/"
 
 bert = "dbmdz/bert-base-italian-xxl-cased"
 
 # list of file to take into account
-datasets = [folder + "Corpus/anamnesi.a.iob", folder + "Corpus/esami.a.iob", folder + "Corpus/anamnesi.b.iob",
-            folder + "Corpus/esami.b.iob"]
+datasets = [folder + "Corpus/anamnesi.a.iob", folder + "Corpus/esami.a.iob"]
 
 parser = Parser(datasets)
 df_train, df_val, df_test = Splitting().holdout(parser.get_sentences(), size=1)
@@ -20,7 +19,7 @@ param = {
     "momentum": 0.9,
     "weight_decay": 0,
 
-    "batch_size": 2,
+    "batch_size": 4,
     "model_name": "modelI.pt",
     "max_epoch": 1,
     "early_stopping": True,

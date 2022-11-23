@@ -6,7 +6,6 @@ from transformers import AutoTokenizer
 
 from Parser import Parser
 
-
 class NerDataset(Dataset):
     # We try to preprocess the data as much as possible.
     def __init__(self, dataset: DataFrame, bert: str, parser: Parser):
@@ -31,3 +30,4 @@ class NerDataset(Dataset):
 
     def __getitem__(self, idx):
         return self.__input_ids[idx], self.__mask[idx], self.__labels[idx]
+    

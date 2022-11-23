@@ -31,7 +31,6 @@ class Parser:
         # Give id returns a label : id --> label
         self.__ids_to_labels: dict = {v: k for v, k in enumerate(sorted(self.__unique_labels))}
 
-        print(self.__sentences[0])
         # We convert the two list in a unique dataframe that contains all phrases detected
         self.__df = pd.DataFrame(self.__sentences, columns=["tokens", "labels"]).drop_duplicates()
 
@@ -57,7 +56,8 @@ class Parser:
                     continue
 
                 sentence, label = [i[0].lower() for i in fields], [i[-1] for i in fields]
-                for i in label: unique_labels.add(i)
+                for i in label:
+                    unique_labels.add(i)
                 sentences.append((" ".join(sentence), " ".join(label)))
 
             return sentences, unique_labels

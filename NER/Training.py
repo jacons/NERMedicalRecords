@@ -1,5 +1,6 @@
 import torch
 from pandas import DataFrame
+from torch.nn.utils.rnn import pad_sequence
 from torch.optim import SGD
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -7,13 +8,26 @@ from tqdm import tqdm
 from CustomDataset import NerDataset
 
 
+def custom_collate(data):
+    inputs_ids = [d[0] for d in data]
+    mask = [d[1] for d in data]
+    label = [d[2] for d in data]
+
+    inputs_ids = pad_sequence(inputs_ids, batch_first=True)
+    mask = pad_sequence(mask, batch_first=True)
+    label = pad_sequence(label, batch_first=True)
+
+    return inputs_ids, mask, label
+
+
 def train(model, bert, parser, df_train: DataFrame, df_val: DataFrame, param: dict):
     # We create an iterator for training e validation dataset
     print("Creating Dataloader for Training set")
-    tr = DataLoader(NerDataset(df_train, bert, parser), batch_size=param["batch_size"], shuffle=True)
+    tr = DataLoader(NerDataset(df_train, bert, parser), collate_fn=custom_collate, batch_size=param["batch_size"],
+                    shuffle=True)
 
     print("Creating Dataloader for Validation set")
-    vl = DataLoader(NerDataset(df_val, bert, parser), batch_size=1)
+    vl = DataLoader(NerDataset(df_val, bert, parser), collate_fn=custom_collate, batch_size=1)
     tr_size, vl_size = len(tr), len(vl)
 
     earlyS_flag: int = 0
@@ -30,7 +44,7 @@ def train(model, bert, parser, df_train: DataFrame, df_val: DataFrame, param: di
         # ========== Training Phase ==========
         model.train()
         for input_id, mask, tr_label in tqdm(tr):
-            optimizer.zero_grad()
+            optimizer.zero_grad(set_to_none=True)
             loss, _ = model(input_id, mask, tr_label)
             loss_train += loss.item()
             loss.backward()

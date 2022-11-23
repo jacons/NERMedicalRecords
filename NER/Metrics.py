@@ -11,18 +11,20 @@ from Parser import Parser
 class Metrics:
     def __init__(self, model, bert, parser: Parser, df_test: DataFrame):
         self.model = model
+
+        print("Creating a Dataloader for Test set")
         self.ts = DataLoader(NerDataset(df_test, bert, parser), batch_size=1)
         self.n_labels = parser.labels("num")
 
-        self.ts_loss: float = 0
-        self.__accuracy: Tensor = torch.zeros(self.n_labels)
-        self.__precision: Tensor = torch.zeros(self.n_labels)
-        self.__recall: Tensor = torch.zeros(self.n_labels)
-        self.__f1: Tensor = torch.zeros(self.n_labels)
+    def custom_metrics(self):
 
-    def perform(self):
-        matrix_results = torch.zeros(size=(self.n_labels, self.n_labels))
         ts_loss: float = 0
+        accuracy: Tensor = torch.zeros(self.n_labels)
+        precision: Tensor = torch.zeros(self.n_labels)
+        recall: Tensor = torch.zeros(self.n_labels)
+        f1: Tensor = torch.zeros(self.n_labels)
+
+        matrix_results = torch.zeros(size=(self.n_labels, self.n_labels))
 
         for input_id, mask, ts_label in tqdm(self.ts):
 
@@ -34,7 +36,7 @@ class Metrics:
             for lbl, pre in zip(label_clean, predictions):
                 matrix_results[lbl, pre] += 1
 
-        self.ts_loss = ts_loss / len(self.ts)
+        ts_loss /= len(self.ts)
 
         iter_label = range(self.n_labels)
 
@@ -48,30 +50,17 @@ class Metrics:
                     if (x != i) & (y != i):
                         tn += matrix_results[x, y]
 
-            self.__accuracy[i] = (tp + tn) / (tp + fn + fp + tn)
-            self.__precision[i] = tp / (tp + fp)
-            self.__recall[i] = tp / (tp + fn)
+            accuracy[i] = (tp + tn) / (tp + fn + fp + tn)
+            precision[i] = tp / (tp + fp)
+            recall[i] = tp / (tp + fn)
 
-            self.__f1[i] = 2 * (self.__precision[i] * self.__recall[i]) / (self.__precision[i] + self.__recall[i])
+            f1[i] = 2 * (precision[i] * recall[i]) / (precision[i] + recall[i])
 
-    def loss(self):
-        return  self.ts_loss
+        return {
+            "Accuracy": accuracy,
+            "Precision": precision,
+            "Recall": recall,
+            "F1 score": f1
+        }
 
-    def overall_result(self, typ: str) -> dict:
-
-        if typ == "mean":
-            return {
-                "Accuracy mean": self.__accuracy.mean(),
-                "Precision mean": self.__precision.mean(),
-                "Recall mean": self.__recall.mean(),
-                "F1 score mean": self.__f1.mean()
-            }
-        elif typ == "all":
-            return {
-                "Accuracy": self.__accuracy,
-                "Precision": self.__precision,
-                "Recall": self.__recall,
-                "F1 score": self.__f1
-            }
-
-        return {}
+    # def conll_eval(self):
