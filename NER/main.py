@@ -22,7 +22,7 @@ param = {
     "batch_size": 4,
     "model_name": "modelI.pt",
     "max_epoch": 1,
-    "early_stopping": True,
+    "early_stopping": 5,
     "nesterov": True,
     "cache": True
 }

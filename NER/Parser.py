@@ -69,17 +69,8 @@ class Parser:
             return True
 
     def align_label(self, token: list, labels: list) -> list:
-        # label_ids = []  # Aligned labels
         # We can all ids in the token, and we try to associate to a label
-
         label_ids = [-100 if word_idx is None else self.__labels_to_ids[labels[word_idx]] for word_idx in token]
-        # for word_idx in token:
-        #     # typically when we encounter [CLS]
-        #     if word_idx is None:
-        #         label_ids.append(-100)
-        #     else:
-        #         label_ids.append(self.__labels_to_ids[labels[word_idx]])
-
         return label_ids
 
     def labels(self, typ: str):

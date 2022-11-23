@@ -6,6 +6,7 @@ from transformers import AutoTokenizer
 
 from Parser import Parser
 
+
 class NerDataset(Dataset):
     # We try to preprocess the data as much as possible.
     def __init__(self, dataset: DataFrame, bert: str, parser: Parser):
@@ -16,8 +17,8 @@ class NerDataset(Dataset):
         for _, row in tqdm(dataset.iterrows(), total=dataset.shape[0]):
             tokens, _labels = row[0].split(), row[1].split()
             # Apply the tokenization at each row
-            token_text = tokenizer(tokens, padding='max_length', max_length=512, truncation=True,
-                                   is_split_into_words=True, return_tensors="pt")
+            token_text = tokenizer(tokens, max_length=512, truncation=True, is_split_into_words=True,
+                                   return_tensors="pt")
 
             label_ids = parser.align_label(token_text.word_ids(), _labels)
 
@@ -30,4 +31,3 @@ class NerDataset(Dataset):
 
     def __getitem__(self, idx):
         return self.__input_ids[idx], self.__mask[idx], self.__labels[idx]
-    
