@@ -1,3 +1,5 @@
+import torch
+
 from Model import BertModel
 from Parser import Parser, Splitting
 from Training import train
@@ -15,19 +17,21 @@ parser = Parser(datasets)
 df_train, df_val, df_test = Splitting().holdout(parser.get_sentences(), size=1)
 
 param = {
-    "lr": 0.007,
-    "momentum": 0.9,
+    "lr": 0.009,
+    "momentum": 0.6,
     "weight_decay": 0,
-
     "batch_size": 4,
-    "model_name": "modelI.pt",
-    "max_epoch": 1,
-    "early_stopping": 5,
+    "model_name": "modelC1.pt",
+    "max_epoch": 2,
+    "early_stopping": 2,
     "nesterov": True,
     "cache": True
 }
 
+# 31.38
 model = BertModel(bert, parser.labels("num")).to("cuda:0")
+model.load_state_dict(torch.load("modelC1.pt"))
+
 train(model, bert, parser, df_train, df_val, param)
 
 """

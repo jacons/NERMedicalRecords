@@ -1,8 +1,8 @@
-import torch
+from torch.nn import Module
 from transformers import AutoModelForMaskedLM
 
 
-class BertModel(torch.nn.Module):
+class BertModel(Module):
     def __init__(self, bert: str, tot_labels: int, frozen=True):
         """
         :param bert: Name of bert used

@@ -1,5 +1,5 @@
-import torch
 from pandas import DataFrame
+from torch import save, cuda, no_grad
 from torch.optim import SGD
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -31,25 +31,25 @@ def train(model, bert, parser, df_train: DataFrame, df_val: DataFrame, param: di
 
         loss_train, loss_val = 0, 0
 
-        # ========== Training Phase ==========
-        model.train()
+        # =======   === Training Phase ==========
         for input_id, mask, tr_label in tqdm(tr):
             optimizer.zero_grad(set_to_none=True)
+
             loss, _ = model(input_id, mask, tr_label)
             loss_train += loss.item()
             loss.backward()
             optimizer.step()
-        # ========== Training Phase ==========
+            # ========== Training Phase ==========
 
         if param["cache"]:
             # torch.save(model.state_dict(), folder + "tmp/" + param["model_name"])
-            torch.save(model.state_dict(), "./" + param["model_name"])
+            save(model.state_dict(), "./" + param["model_name"])
 
         # ========== Validation Phase ==========
-        model.eval()  # Validation phase
-        for input_id, mask, val_label in tqdm(vl):
-            loss, _ = model(input_id, mask, val_label)
-            loss_val += loss.item()
+        with no_grad():  # Validation phase
+            for input_id, mask, val_label in tqdm(vl):
+                loss, _ = model(input_id, mask, val_label)
+                loss_val += loss.item()
         # ========== Validation Phase ==========
 
         tr_loss, val_loss = (loss_train / tr_size), (loss_val / vl_size)

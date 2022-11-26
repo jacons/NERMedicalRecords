@@ -1,5 +1,6 @@
 import torch
 from pandas import DataFrame
+from torch import LongTensor
 from torch.utils.data import Dataset
 from tqdm import tqdm
 from transformers import AutoTokenizer
@@ -24,7 +25,7 @@ class NerDataset(Dataset):
 
             self.__input_ids.append(token_text['input_ids'].squeeze(0).to("cuda:0"))
             self.__mask.append(token_text['attention_mask'].squeeze(0).to("cuda:0"))
-            self.__labels.append(torch.LongTensor(label_ids).to("cuda:0"))
+            self.__labels.append(LongTensor(label_ids).to("cuda:0"))
 
     def __len__(self):
         return len(self.__labels)

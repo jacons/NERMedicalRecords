@@ -1,4 +1,4 @@
-import math
+from math import inf
 
 from torch.nn.utils.rnn import pad_sequence
 
@@ -20,7 +20,7 @@ class EarlyStopping:
         self.patience: int = patience + 1
         self.curr_pat: int = patience + 1
 
-        self.current_vl: float = -math.inf
+        self.current_vl: float = -inf
         self.earlyStop: bool = False
 
     def update(self, vl_loss: float):

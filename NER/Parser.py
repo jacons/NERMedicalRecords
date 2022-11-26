@@ -1,8 +1,7 @@
 import itertools
-import os
+from os.path import basename
 
 import numpy as np
-import pandas as pd
 from pandas import DataFrame
 
 
@@ -32,7 +31,7 @@ class Parser:
         self.__ids_to_labels: dict = {v: k for v, k in enumerate(sorted(self.__unique_labels))}
 
         # We convert the two list in a unique dataframe that contains all phrases detected
-        self.__df = pd.DataFrame(self.__sentences, columns=["tokens", "labels"]).drop_duplicates()
+        self.__df = DataFrame(self.__sentences, columns=["tokens", "labels"]).drop_duplicates()
 
         return
 
@@ -42,7 +41,7 @@ class Parser:
     def __read_conll(self, path: str) -> tuple:
         with open(path, encoding="utf-8") as f:
 
-            print("File: ", os.path.basename(path))
+            print("File: ", basename(path))
 
             sentences: list = []
             unique_labels: set = set()
