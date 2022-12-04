@@ -5,11 +5,11 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from CustomDataset import NerDataset
+from NER.Configuration import Configuration
 from NER.Utils import padding_batch, EarlyStopping
 
 
-def train(model, parser, df_train: DataFrame, df_val: DataFrame, conf):
-
+def train(model, parser, df_train: DataFrame, df_val: DataFrame, conf: Configuration):
     # We create an iterator for training e validation dataset
     print("Creating Dataloader for Training set")
     tr = DataLoader(NerDataset(df_train, conf, parser), collate_fn=padding_batch, batch_size=conf.param["batch_size"],
@@ -23,7 +23,8 @@ def train(model, parser, df_train: DataFrame, df_val: DataFrame, conf):
 
     es = EarlyStopping(total_epochs if stopping <= 0 else stopping)
 
-    optimizer = SGD(model.parameters(), lr=conf.param["lr"], momentum=conf.param["momentum"], weight_decay=conf.param["weight_decay"],
+    optimizer = SGD(model.parameters(), lr=conf.param["lr"], momentum=conf.param["momentum"],
+                    weight_decay=conf.param["weight_decay"],
                     nesterov=conf.param["nesterov"])
 
     epoch = 0

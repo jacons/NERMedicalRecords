@@ -4,9 +4,11 @@ from os.path import basename
 import numpy as np
 from pandas import DataFrame, concat
 
+from NER.Configuration import Configuration
+
 
 class Parser:
-    def __init__(self, conf):
+    def __init__(self, conf: Configuration):
         """
         Util class used to parse the data from iob file (CoNLL format)
         """
@@ -99,6 +101,7 @@ class Parser:
         elif typ == "dict":
             return self.__ids_to_labels
 
+
 class Splitting:
     def __init__(self):
         # ========== PARAMETERS ==========
@@ -119,4 +122,3 @@ class Splitting:
         print("\nTotal number of phrases: ", length, " (tr): ", tr, " (vl): ", int(self.vl_size * length), " (ts): ",
               int(self.ts_size * length))
         return np.split(df, [tr, int((self.tr_size + self.vl_size) * length)])
-    

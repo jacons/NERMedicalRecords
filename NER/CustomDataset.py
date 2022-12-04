@@ -4,12 +4,13 @@ from torch.utils.data import Dataset
 from tqdm import tqdm
 from transformers import AutoTokenizer
 
+from NER.Configuration import Configuration
 from Parser import Parser
 
 
 class NerDataset(Dataset):
     # We try to preprocess the data as much as possible.
-    def __init__(self, dataset: DataFrame, conf, parser: Parser):
+    def __init__(self, dataset: DataFrame, conf: Configuration, parser: Parser):
         self.__input_ids, self.__mask, self.__labels = [], [], []
 
         tokenizer = AutoTokenizer.from_pretrained(conf.bert)
