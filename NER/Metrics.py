@@ -1,3 +1,4 @@
+"""
 import torch
 from pandas import DataFrame
 from torch import Tensor
@@ -60,7 +61,5 @@ class Metrics:
             "Accuracy": accuracy,
             "Precision": precision,
             "Recall": recall,
-            "F1 score": f1
-        }
-
-    # def conll_eval(self):
+            "F1 score": f1}
+"""

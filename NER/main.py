@@ -11,26 +11,25 @@ folder = "./../../NERForMedicalRecords/"
 bert = "dbmdz/bert-base-italian-xxl-cased"
 
 # list of file to take into account
-datasets = [folder + "Corpus/anamnesi.a.iob", folder + "Corpus/esami.a.iob"]
+datasets = [folder + "Corpus/anamnesi.a.iob", folder + "Corpus/esami.a.iob",folder + "Corpus/anamnesi.b.iob", folder + "Corpus/esami.b.iob"]
 
 parser = Parser(datasets)
 df_train, df_val, df_test = Splitting().holdout(parser.get_sentences(), size=1)
 
 param = {
-    "lr": 0.009,
-    "momentum": 0.6,
+    "lr": 0.016,
+    "momentum": 0.9,
     "weight_decay": 0,
     "batch_size": 4,
-    "model_name": "modelC1.pt",
+    "model_name": "modelD3.pt",
     "max_epoch": 2,
     "early_stopping": 2,
     "nesterov": True,
     "cache": True
 }
 
-# 31.38
 model = BertModel(bert, parser.labels("num")).to("cuda:0")
-model.load_state_dict(torch.load("modelC1.pt"))
+model.load_state_dict(torch.load("modelD3.pt"))
 
 train(model, bert, parser, df_train, df_val, param)
 

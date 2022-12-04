@@ -1,4 +1,3 @@
-import torch
 from pandas import DataFrame
 from torch import LongTensor
 from torch.utils.data import Dataset
