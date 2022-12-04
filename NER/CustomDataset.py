@@ -9,22 +9,35 @@ from Parser import Parser
 
 class NerDataset(Dataset):
     # We try to preprocess the data as much as possible.
-    def __init__(self, dataset: DataFrame, bert: str, parser: Parser):
+    def __init__(self, dataset: DataFrame, conf, parser: Parser):
         self.__input_ids, self.__mask, self.__labels = [], [], []
 
-        tokenizer = AutoTokenizer.from_pretrained(bert)
+        tokenizer = AutoTokenizer.from_pretrained(conf.bert)
 
-        for _, row in tqdm(dataset.iterrows(), total=dataset.shape[0]):
-            tokens, _labels = row[0].split(), row[1].split()
-            # Apply the tokenization at each row
-            token_text = tokenizer(tokens, max_length=512, truncation=True, is_split_into_words=True,
-                                   return_tensors="pt")
+        for column in conf.columns_tag:
+            print("File type: " + column)
+            for _, row in tqdm(dataset[["Sentences", "lbl-" + str(column)]].iterrows(), total=dataset.shape[0]):
 
-            label_ids = parser.align_label(token_text.word_ids(), _labels)
+                tokens, _labels = row[0].split(), row[1].split()
 
-            self.__input_ids.append(token_text['input_ids'].squeeze(0).to("cuda:0"))
-            self.__mask.append(token_text['attention_mask'].squeeze(0).to("cuda:0"))
-            self.__labels.append(LongTensor(label_ids).to("cuda:0"))
+                # Apply the tokenization at each row
+                token_text = tokenizer(tokens, max_length=512, truncation=True, is_split_into_words=True,
+                                       return_tensors="pt")
+
+                label_ids = parser.align_label(token_text.word_ids(), _labels)
+
+                input_ = token_text['input_ids'].squeeze(0)
+                mask_ = token_text['attention_mask'].squeeze(0)
+                label_ = LongTensor(label_ids)
+
+                if conf.cuda:
+                    input_ = input_.to("cuda:0")
+                    mask_ = mask_.to("cuda:0")
+                    label_ = label_.to("cuda:0")
+
+                self.__input_ids.append(input_)
+                self.__mask.append(mask_)
+                self.__labels.append(label_)
 
     def __len__(self):
         return len(self.__labels)

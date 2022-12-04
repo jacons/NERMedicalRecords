@@ -8,23 +8,23 @@ from CustomDataset import NerDataset
 from NER.Utils import padding_batch, EarlyStopping
 
 
-def train(model, bert, parser, df_train: DataFrame, df_val: DataFrame, param: dict):
+def train(model, parser, df_train: DataFrame, df_val: DataFrame, conf):
 
     # We create an iterator for training e validation dataset
     print("Creating Dataloader for Training set")
-    tr = DataLoader(NerDataset(df_train, bert, parser), collate_fn=padding_batch, batch_size=param["batch_size"],
+    tr = DataLoader(NerDataset(df_train, conf, parser), collate_fn=padding_batch, batch_size=conf.param["batch_size"],
                     shuffle=True)
 
     print("\nCreating Dataloader for Validation set")
-    vl = DataLoader(NerDataset(df_val, bert, parser), collate_fn=padding_batch, batch_size=1)
+    vl = DataLoader(NerDataset(df_val, conf, parser), collate_fn=padding_batch, batch_size=1)
 
     tr_size, vl_size = len(tr), len(vl)
-    total_epochs, stopping = param["max_epoch"], param["early_stopping"]
+    total_epochs, stopping = conf.param["max_epoch"], conf.param["early_stopping"]
 
     es = EarlyStopping(total_epochs if stopping <= 0 else stopping)
 
-    optimizer = SGD(model.parameters(), lr=param["lr"], momentum=param["momentum"], weight_decay=param["weight_decay"],
-                    nesterov=param["nesterov"])
+    optimizer = SGD(model.parameters(), lr=conf.param["lr"], momentum=conf.param["momentum"], weight_decay=conf.param["weight_decay"],
+                    nesterov=conf.param["nesterov"])
 
     epoch = 0
     while (epoch < total_epochs) and (not es.earlyStop):
@@ -41,9 +41,9 @@ def train(model, bert, parser, df_train: DataFrame, df_val: DataFrame, param: di
             optimizer.step()
         # ========== Training Phase ==========
 
-        if param["cache"]:
+        if conf.param["cache"]:
             # torch.save(model.state_dict(), folder + "tmp/" + param["model_name"])
-            save(model.state_dict(), "./" + param["model_name"])
+            save(model.state_dict(), "./" + conf.param["model_name"])
 
         # ========== Validation Phase ==========
         with no_grad():  # Validation phase

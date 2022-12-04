@@ -1,43 +1,18 @@
 import torch
 
-from Model import BertModel
-from Parser import Parser, Splitting
-from Training import train
+from NER.Configuration import Configuration
+from NER.Model import BertModel
+from NER.Parser import Parser, Splitting
+from NER.Training import train
 
-# folder = "/content/drive/MyDrive/NERForMedicalRecords/"
-# folder = "/content/drive/Othercomputers/Il mio Laptop/Universita/[IA] Artificial Intelligence/[HLT] Human Language Technologies/NERforMedicalRecords/"
-folder = "./../../NERForMedicalRecords/"
+if __name__ == "__main__":
+    conf = Configuration()
 
-bert = "dbmdz/bert-base-italian-xxl-cased"
+    parser = Parser(conf)
+    df_train, df_val, df_test = Splitting().holdout(parser.get_sentences(), size=1)
+    model = BertModel(conf.bert, parser.labels("num"))
 
-# list of file to take into account
-datasets = [folder + "Corpus/anamnesi.a.iob", folder + "Corpus/esami.a.iob",folder + "Corpus/anamnesi.b.iob", folder + "Corpus/esami.b.iob"]
+    if conf.cuda:
+        model.to("cuda:0")
 
-parser = Parser(datasets)
-df_train, df_val, df_test = Splitting().holdout(parser.get_sentences(), size=1)
-
-param = {
-    "lr": 0.016,
-    "momentum": 0.9,
-    "weight_decay": 0,
-    "batch_size": 4,
-    "model_name": "modelD3.pt",
-    "max_epoch": 2,
-    "early_stopping": 2,
-    "nesterov": True,
-    "cache": True
-}
-
-model = BertModel(bert, parser.labels("num")).to("cuda:0")
-model.load_state_dict(torch.load("modelD3.pt"))
-
-train(model, bert, parser, df_train, df_val, param)
-
-"""
-model.load_state_dict(torch.load("K:/NoSyncCache/Models/ModelI.pt"))
-model.eval()
-m = Metrics(model, bert, parser, df_test)
-m.perform()
-m.overall_result("all")
-m.overall_result("mean")
-"""
+    train(model, parser, df_train, df_val, conf)
