@@ -1,5 +1,4 @@
 import itertools
-from os.path import basename
 
 import numpy as np
 from pandas import DataFrame, concat
@@ -15,7 +14,8 @@ class Parser:
         self.__unique_labels: set = set()  # set of unique labels encountered
 
         # We create a list of dataframe base on the category of files es. "esami","anamnesi" or both ..
-        list_of_dt = [self.build_dataset(name, conf.paths) for name in conf.files]
+        print("Building sentences\n" + "-" * 85)
+        list_of_dt = [self.build_dataset(name, conf) for name in conf.files]
         self.__df = concat(list_of_dt)
 
         # Create a Name Entity dictionaries
@@ -55,12 +55,14 @@ class Parser:
 
         yield None, None, None, False
 
-    def build_dataset(self, name: str, paths: dict):
+    def build_dataset(self, name: str, conf: Configuration):
 
-        print("Files: ", name)
+        # print("Files: ", name)
         generators, sentences, pos_tags, labels = [], [], [], []
 
-        for file_ in paths[name]["files"]:
+        lst = [conf.paths[name]["type"].index(t) for t in conf.columns_tag]
+        for id_path in lst:
+            file_ = conf.paths[name]["files"][id_path]
             generators.append(self.read_conll(file_))
             sentences.append([])
             pos_tags.append([])
@@ -79,11 +81,11 @@ class Parser:
                 pos_tags[idx].append(values[1])
                 labels[idx].append(values[2])
 
-        print("\t--INFO-- Number of phrases built: ", len(sentences[0]))
-        print("\t--INFO-- Number of tags detected: ", len(self.__unique_labels))
+        print("|{:^41}|{:^20}|{:^20}|".format("Sentences and tags found", len(sentences[0]),
+                                              len(self.__unique_labels)) + "\n" + "-" * 85)
 
         dt = {"Sentences": sentences[0], "Pos_tag": pos_tags[0]}
-        for idx, v in enumerate(paths[name]["type"]):
+        for idx, v in enumerate(conf.columns_tag):
             dt["lbl-" + str(v)] = labels[idx]
 
         return DataFrame(dt).drop_duplicates()
@@ -119,6 +121,8 @@ class Splitting:
 
         length = len(df)  # length of sub-sampled dataframe
         tr = int(self.tr_size * length)  # Number of row for the training set
-        print("\nTotal number of phrases: ", length, " (tr): ", tr, " (vl): ", int(self.vl_size * length), " (ts): ",
-              int(self.ts_size * length))
+        vl = int(self.vl_size * length)
+        ts = int(self.ts_size * length)
+
+        print("|{:^27}|{:^27}|{:^27}|".format("TR: " + str(tr), "VL: " + str(vl), "TS: " + str(ts)) + "\n" + "-" * 85)
         return np.split(df, [tr, int((self.tr_size + self.vl_size) * length)])

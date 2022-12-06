@@ -16,7 +16,6 @@ class NerDataset(Dataset):
         tokenizer = AutoTokenizer.from_pretrained(conf.bert)
 
         for column in conf.columns_tag:
-            print("File type: " + column)
             for _, row in tqdm(dataset[["Sentences", "lbl-" + str(column)]].iterrows(), total=dataset.shape[0]):
 
                 tokens, _labels = row[0].split(), row[1].split()

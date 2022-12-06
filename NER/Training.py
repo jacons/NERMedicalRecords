@@ -6,10 +6,11 @@ from tqdm import tqdm
 
 from CustomDataset import NerDataset
 from NER.Configuration import Configuration
+from NER.Model import BertModel
 from NER.Utils import padding_batch, EarlyStopping
 
 
-def train(model, parser, df_train: DataFrame, df_val: DataFrame, conf: Configuration):
+def train(model: BertModel, parser, df_train: DataFrame, df_val: DataFrame, conf: Configuration):
     # We create an iterator for training e validation dataset
     print("Creating Dataloader for Training set")
     tr = DataLoader(NerDataset(df_train, conf, parser), collate_fn=padding_batch, batch_size=conf.param["batch_size"],
@@ -20,19 +21,21 @@ def train(model, parser, df_train: DataFrame, df_val: DataFrame, conf: Configura
 
     tr_size, vl_size = len(tr), len(vl)
     total_epochs, stopping = conf.param["max_epoch"], conf.param["early_stopping"]
+    epoch = 0
 
     es = EarlyStopping(total_epochs if stopping <= 0 else stopping)
 
     optimizer = SGD(model.parameters(), lr=conf.param["lr"], momentum=conf.param["momentum"],
-                    weight_decay=conf.param["weight_decay"],
-                    nesterov=conf.param["nesterov"])
+                    weight_decay=conf.param["weight_decay"], nesterov=conf.param["nesterov"])
 
-    epoch = 0
+    model_version = ModelVersion(folder=conf.folder, name=conf.param["model_name"]) if conf.param["cache"] else None
+
+    print("\nTraining")
     while (epoch < total_epochs) and (not es.earlyStop):
 
         loss_train, loss_val = 0, 0
 
-        # =======   === Training Phase ==========
+        # ========== Training Phase ==========
         for input_id, mask, tr_label in tqdm(tr):
             optimizer.zero_grad(set_to_none=True)
 
@@ -41,10 +44,6 @@ def train(model, parser, df_train: DataFrame, df_val: DataFrame, conf: Configura
             loss.backward()
             optimizer.step()
         # ========== Training Phase ==========
-
-        if conf.param["cache"]:
-            # torch.save(model.state_dict(), folder + "tmp/" + param["model_name"])
-            save(model.state_dict(), "./" + conf.param["model_name"])
 
         # ========== Validation Phase ==========
         with no_grad():  # Validation phase
@@ -60,3 +59,19 @@ def train(model, parser, df_train: DataFrame, df_val: DataFrame, conf: Configura
 
         print(f'Epochs: {epoch + 1} | Loss: {tr_loss: .4f} | Val_Loss: {val_loss: .4f}')
         epoch += 1
+
+        if model_version is not None:
+            model_version.update(model, val_loss)
+
+class ModelVersion:
+    def __init__(self, folder: str, name: str):
+        self.folder: str = folder
+        self.model_name: str = name
+        self.list_vl_loss: list = []
+
+    def update(self, model: BertModel, vl_loss: float):
+        if (len(self.list_vl_loss) == 0) or (vl_loss < min(self.list_vl_loss)):
+            save(model.state_dict(), self.folder + "tmp/" + self.model_name + ".pt")
+            print("Saved")
+
+        self.list_vl_loss.append(vl_loss)
