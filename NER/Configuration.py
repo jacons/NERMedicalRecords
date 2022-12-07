@@ -24,7 +24,7 @@ class Configuration:
         }
 
         # The system recognize if there are some GPU available
-        self.cuda: bool = True if torch.cuda.is_available() else False
+        self.cuda = True if torch.cuda.is_available() else False
 
         # We can choose if train the model with different group of entity defined in the path dictionary
         self.columns_tag: list = ["b"]

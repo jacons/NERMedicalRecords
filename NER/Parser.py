@@ -11,7 +11,7 @@ class Parser:
         """
         Util class used to parse the data from iob file (CoNLL format)
         """
-        self.__unique_labels: set = set()  # set of unique labels encountered
+        self.__unique_labels = set()  # set of unique labels encountered
 
         # We create a list of dataframe base on the category of files es. "esami","anamnesi" or both ..
         print("Building sentences\n" + "-" * 85)
@@ -20,9 +20,9 @@ class Parser:
 
         # Create a Name Entity dictionaries
         # Give a label returns id : label --> id
-        self.__labels_to_ids: dict = {k: v for v, k in enumerate(sorted(self.__unique_labels))}
+        self.labels_to_ids: dict = {k: v for v, k in enumerate(sorted(self.__unique_labels))}
         # Give id returns a label : id --> label
-        self.__ids_to_labels: dict = {v: k for v, k in enumerate(sorted(self.__unique_labels))}
+        self.ids_to_labels: dict = {v: k for v, k in enumerate(sorted(self.__unique_labels))}
 
     def get_sentences(self):
         return self.__df
@@ -92,7 +92,7 @@ class Parser:
 
     def align_label(self, token: list, labels: list) -> list:
         # We can all ids in the token, and we try to associate to a label
-        label_ids = [-100 if word_idx is None else self.__labels_to_ids[labels[word_idx]] for word_idx in token]
+        label_ids = [-100 if word_idx is None else self.labels_to_ids[labels[word_idx]] for word_idx in token]
         return label_ids
 
     def labels(self, typ: str):
@@ -101,7 +101,7 @@ class Parser:
         elif typ == "num":
             return len(self.__unique_labels)
         elif typ == "dict":
-            return self.__ids_to_labels
+            return self.ids_to_labels
 
 
 class Splitting:

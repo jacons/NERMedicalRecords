@@ -1,5 +1,5 @@
 from pandas import DataFrame
-from torch import save, no_grad
+from torch import no_grad
 from torch.optim import SGD
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -7,7 +7,7 @@ from tqdm import tqdm
 from CustomDataset import NerDataset
 from NER.Configuration import Configuration
 from NER.Model import BertModel
-from NER.Utils import padding_batch, EarlyStopping
+from NER.Utils import padding_batch, EarlyStopping, ModelVersion
 
 
 def train(model: BertModel, parser, df_train: DataFrame, df_val: DataFrame, conf: Configuration):
@@ -62,16 +62,3 @@ def train(model: BertModel, parser, df_train: DataFrame, df_val: DataFrame, conf
 
         if model_version is not None:
             model_version.update(model, val_loss)
-
-class ModelVersion:
-    def __init__(self, folder: str, name: str):
-        self.folder: str = folder
-        self.model_name: str = name
-        self.list_vl_loss: list = []
-
-    def update(self, model: BertModel, vl_loss: float):
-        if (len(self.list_vl_loss) == 0) or (vl_loss < min(self.list_vl_loss)):
-            save(model.state_dict(), self.folder + "tmp/" + self.model_name + ".pt")
-            print("Saved")
-
-        self.list_vl_loss.append(vl_loss)

@@ -1,6 +1,9 @@
 from math import inf
 
+from torch import save
 from torch.nn.utils.rnn import pad_sequence
+
+from NER.Model import BertModel
 
 
 def padding_batch(data):
@@ -21,7 +24,7 @@ class EarlyStopping:
         self.curr_pat: int = patience + 1
 
         self.current_vl: float = -inf
-        self.earlyStop: bool = False
+        self.earlyStop = False
 
     def update(self, vl_loss: float):
         if self.current_vl < vl_loss:
@@ -33,3 +36,17 @@ class EarlyStopping:
 
         if self.curr_pat == 0:
             self.earlyStop = True
+
+
+class ModelVersion:
+    def __init__(self, folder: str, name: str):
+        self.folder = folder
+        self.model_name = name
+        self.list_vl_loss: list = []
+
+    def update(self, model: BertModel, vl_loss: float):
+        if (len(self.list_vl_loss) == 0) or (vl_loss < min(self.list_vl_loss)):
+            save(model.state_dict(), self.folder + "tmp/" + self.model_name + ".pt")
+            print("Saved")
+
+        self.list_vl_loss.append(vl_loss)

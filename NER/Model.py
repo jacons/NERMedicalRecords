@@ -3,7 +3,7 @@ from transformers import AutoModelForMaskedLM
 
 
 class BertModel(Module):
-    def __init__(self, bert: str, tot_labels: int, frozen=True):
+    def __init__(self, bert: str, tot_labels: int, frozen: bool = True):
         """
         Bert model
         :param bert: Name of bert used
