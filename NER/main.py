@@ -8,9 +8,6 @@ if __name__ == "__main__":
     conf = Configuration()
     parser = Parser(conf)
 
-# to do :
-# 1) Salvare il modello ad ogni epoca e spostare sul drive quello migliore
-
     """
     df_train, df_val, df_test = Splitting().holdout(parser.get_sentences(), size=1)
     model = BertModel(conf.bert, parser.labels("num"))

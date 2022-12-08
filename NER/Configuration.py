@@ -16,23 +16,25 @@ class Configuration:
             "momentum": 0.9,
             "weight_decay": 0,
             "batch_size": 2,
-            "model_name": "modelD2",
-            "max_epoch": 20,
+            "model_name": "modelAB",
+            "max_epoch": 1,
             "early_stopping": 2,
             "nesterov": True,
             "cache": True
         }
 
+        # We can choose if train the model with different group of entity defined in the path dictionary
+        self.type_of_entity = ["a", "b"]
+
+        # self.folder: str = "/content/drive/MyDrive/NERforMedicalRecords/"
+        self.folder: str = "/content/drive/Othercomputers/Il mio Laptop/Universita/[IA] Artificial Intelligence/[HLT] " \
+                           "Human Language Technologies/NERforMedicalRecords/ "
+
         # The system recognize if there are some GPU available
         self.cuda = True if torch.cuda.is_available() else False
-
-        # We can choose if train the model with different group of entity defined in the path dictionary
-        self.columns_tag: list = ["b"]
-        self.files: list = ["esami", "anamnesi"]
-
-        # Bert model as baseline
-        self.bert: str = "dbmdz/bert-base-italian-xxl-cased"
-        self.folder: str = "/content/drive/MyDrive/NERforMedicalRecords/"
+        # Constants
+        self.bert = "dbmdz/bert-base-italian-xxl-cased"  # Bert model as baseline
+        self.files = ["anamnesi", "esami"]
         self.paths: dict = {
             "anamnesi": {
                 "files": [self.folder + "Corpus/anamnesi.a.iob", self.folder + "Corpus/anamnesi.b.iob"],
@@ -41,6 +43,7 @@ class Configuration:
                 "files": [self.folder + "Corpus/esami.a.iob", self.folder + "Corpus/esami.b.iob"],
                 "type": ["a", "b"]}
         }
+
         if verbose:
             self.show_parameters(conf)
 
@@ -56,7 +59,7 @@ class Configuration:
             print("{:<85}".format("File used"))
             for name in self.files:
                 print("-" * 85)
-                print("|{:^41}|{:^41}|".format(name, " - ".join(self.columns_tag)))
+                print("|{:^41}|{:^41}|".format(name, " - ".join(self.type_of_entity)))
             print("-" * 85)
 
         if "param" in conf:

@@ -15,17 +15,16 @@ class NerDataset(Dataset):
 
         tokenizer = AutoTokenizer.from_pretrained(conf.bert)
 
-        for column in conf.columns_tag:
-            for _, row in tqdm(dataset[["Sentences", "lbl-" + str(column)]].iterrows(), total=dataset.shape[0]):
-
+        for type_of_entity in conf.type_of_entity:
+            for _, row in tqdm(dataset[["Sentences", "Labels_" + str(type_of_entity)]].iterrows(),
+                               total=dataset.shape[0]):
                 tokens, _labels = row[0].split(), row[1].split()
 
                 # Apply the tokenization at each row
                 token_text = tokenizer(tokens, max_length=512, truncation=True, is_split_into_words=True,
                                        return_tensors="pt")
 
-                label_ids = parser.align_label(token_text.word_ids(), _labels)
-
+                label_ids = parser.align(token_text.word_ids(), _labels)
                 input_ = token_text['input_ids'].squeeze(0)
                 mask_ = token_text['attention_mask'].squeeze(0)
                 label_ = LongTensor(label_ids)
