@@ -4,7 +4,7 @@ from torch.optim import SGD
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from CustomDataset import NerDataset
+from BuildDataset import NerDataset
 from Configuration import Configuration
 from Model import BertModel
 from Utils import padding_batch, EarlyStopping, ModelVersion

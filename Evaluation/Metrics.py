@@ -80,7 +80,7 @@
 #   model = model.to("cuda:0")
 
 # # train(model, parser, df_train, df_val, conf)
-# # # evaluation single tag modelA e tagA, modelB e tagB
+# # # Evaluation single tag modelA e tagA, modelB e tagB
 # # # ensembling modelA modelB tag A e b
 # # # evaludation modelAB e tag AeB
 
