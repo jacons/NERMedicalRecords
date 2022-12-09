@@ -3,7 +3,7 @@ from math import inf
 from torch import save
 from torch.nn.utils.rnn import pad_sequence
 
-from NER.Model import BertModel
+from Model import BertModel
 
 
 def padding_batch(data):

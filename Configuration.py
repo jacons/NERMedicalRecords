@@ -47,6 +47,12 @@ class Configuration:
         if verbose:
             self.show_parameters(conf)
 
+    def update_entities(self, entities: list):
+        self.type_of_entity = entities
+
+    def update_params(self, param: str, value: float):
+        self.param[param] = value
+
     def show_parameters(self, conf: list) -> None:
 
         if "bert" in conf:
