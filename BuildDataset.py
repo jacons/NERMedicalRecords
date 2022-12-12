@@ -5,12 +5,12 @@ from tqdm import tqdm
 from transformers import AutoTokenizer
 
 from Configuration import Configuration
-from Parsers.Parser import Parser
+from Parser.parser_utils import EntityHandler
 
 
 class NerDataset(Dataset):
     # We try to preprocess the data as much as possible.
-    def __init__(self, dataset: DataFrame, conf: Configuration, parser: Parser):
+    def __init__(self, dataset: DataFrame, conf: Configuration, e_handler: EntityHandler):
         self.__input_ids, self.__mask, self.__labels = [], [], []
 
         tokenizer = AutoTokenizer.from_pretrained(conf.bert)
@@ -24,7 +24,7 @@ class NerDataset(Dataset):
                 token_text = tokenizer(tokens, max_length=512, truncation=True, is_split_into_words=True,
                                        return_tensors="pt")
 
-                label_ids = parser.align(token_text.word_ids(), _labels)
+                label_ids = e_handler.align_label(token_text.word_ids(), _labels)
                 input_ = token_text['input_ids'].squeeze(0)
                 mask_ = token_text['attention_mask'].squeeze(0)
                 label_ = LongTensor(label_ids)

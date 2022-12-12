@@ -12,13 +12,13 @@ class Configuration:
 
         # Hyperparameters
         self.param: dict = {
-            "lr": 0.011,
+            "lr": 0.009,
             "momentum": 0.9,
             "weight_decay": 0,
             "batch_size": 2,
-            "model_name": "modelAB",
-            "max_epoch": 1,
-            "early_stopping": 2,
+            "model_name": "modelB2",
+            "max_epoch": 8,
+            "early_stopping": 3,
             "nesterov": True,
             "cache": True
         }
@@ -26,9 +26,9 @@ class Configuration:
         # We can choose if train the model with different group of entity defined in the path dictionary
         self.type_of_entity = ["a", "b"]
 
-        # self.folder: str = "/content/drive/MyDrive/NERforMedicalRecords/"
-        self.folder: str = "/content/drive/Othercomputers/Il mio Laptop/Universita/[IA] Artificial Intelligence/[HLT] " \
-                           "Human Language Technologies/NERforMedicalRecords/ "
+        self.folder: str = "/content/drive/MyDrive/NERforMedicalRecords/"
+        # self.folder: str = "K:/Universita/[IA] Artificial Intelligence/[HLT] Human Language " \
+        #                    "Technologies/NERforMedicalRecords/"
 
         # The system recognize if there are some GPU available
         self.cuda = True if torch.cuda.is_available() else False

@@ -1,138 +1,164 @@
-# class EnsembleDataset(Dataset):
-#   def __init__(self, dataset: DataFrame, conf: Configuration, parser: Parser):
+import numpy as np
+import torch
+from pandas import DataFrame
+from torch import Tensor
+from tqdm import tqdm
+from transformers import AutoTokenizer
 
-#     self.__input_ids, self.__mask, self.__labelsA, self.__labelsB = [], [], [], []
-#     tokenizer = AutoTokenizer.from_pretrained(conf.bert)
+from Configuration import Configuration
+from Model import BertModel
 
-#     for _, row in tqdm(dataset.iterrows(), total=dataset.shape[0]):
-#       tokens, _labelsA, _labelsB = row[0].split(), row[2].split(), row[3].split()
 
-#       # Apply the tokenization at each row
-#       token_text = tokenizer(tokens, max_length=512, truncation=True, is_split_into_words=True,
-#                              return_tensors="pt")
+def convert(labels: Tensor, dic: dict):
+    return [dic[i.item()] for i in labels]
 
-#       labelA_ids = parser.align_label(token_text.word_ids(), _labelsA)
-#       labelB_ids = parser.align_label(token_text.word_ids(), _labelsB)
 
-#       input_ = token_text['input_ids'].squeeze(0)
-#       mask_ = token_text['attention_mask'].squeeze(0)
+def merge_labels(labelsA: list, labelsB: list):
+    return [[a, b] for a, b in zip(labelsA, labelsB)]
 
-#       labelA_ = LongTensor(labelA_ids)
-#       labelB_ = LongTensor(labelB_ids)
 
-#       if conf.cuda:
-#           input_ = input_.to("cuda:0")
-#           mask_ = mask_.to("cuda:0")
-#           labelA_ = labelA_.to("cuda:0")
-#           labelB_ = labelB_.to("cuda:0")
+def unify_labels(labelsA: list, labelsB: list):
+    unified = []
+    for a, b in zip(labelsA, labelsB):
+        if a == b or b == "O":
+            unified.append(a)
+        elif a == "O":
+            unified.append(b)
+        else:
+            unified.append([a, b])
+    return unified
 
-#       self.__input_ids.append(input_)
-#       self.__mask.append(mask_)
-#       self.__labelsA.append(labelA_)
-#       self.__labelsB.append(labelB_)
 
-#   def __len__(self):
-#       return len(self.__input_ids)
+def scores(confusion_m: Tensor, labels: dict) -> DataFrame:
+    length = confusion_m.shape[0]
 
-#   def __getitem__(self, idx):
-#       return self.__input_ids[idx], self.__mask[idx], self.__labelsA[idx], self.__labelsB[idx]
+    iter_label = range(length)
+    accuracy: Tensor = torch.zeros(length)
+    precision: Tensor = torch.zeros(length)
+    recall: Tensor = torch.zeros(length)
+    f1: Tensor = torch.zeros(length)
 
-# ts = DataLoader(EnsembleDataset(df_test,conf,parser), collate_fn=padding_batch2, batch_size=1)
-# default_id = parser.labels_to_ids["O"]
+    for i in iter_label:
+        fn = torch.sum(confusion_m[i, :i]) + torch.sum(confusion_m[i, i + 1:])
+        fp = torch.sum(confusion_m[:i, i]) + torch.sum(confusion_m[i + 1:, i])
+        tn, tp = 0, confusion_m[i, i]
+        for x in iter_label:
+            for y in iter_label:
+                if (x != i) & (y != i):
+                    tn += confusion_m[x, y]
+        accuracy[i] = (tp + tn) / (tp + fn + fp + tn)
+        precision[i] = tp / (tp + fp)
+        recall[i] = tp / (tp + fn)
+        f1[i] = 2 * (precision[i] * recall[i]) / (precision[i] + recall[i])
 
-# def merge_label(labelsA:Tensor,labelsB:Tensor):
+    r = {
+        "Accuracy": accuracy.tolist(),
+        "Precision": precision.tolist(),
+        "Recall": recall.tolist(),
+        "F1": f1.tolist()
+    }
+    return DataFrame(r, index=list(labels.values()))
 
-#   labelsA,labelsB = labelsA.squeeze(), labelsB.squeeze()
-#   labels = []
-#   for a,b in zip(labelsA,labelsB):
-#     a, b = a.item(), b.item()
-#     if a == b or b == default_id:
-#       labels.append(a)
-#     elif a == default_id:
-#       labels.append(b)
-#     else:
-#       labels.append([a,b]) 
-#   return labels
-# parser.labels("dict")
-# modelA = BertModel(conf.bert, 9)
-# modelA.load_state_dict(torch.load(conf.folder + "tmp/modelA1.pt",map_location=torch.device('cpu')))
 
-# modelB = BertModel(conf.bert, 5)
-# modelB.load_state_dict(torch.load(conf.folder + "tmp/modelG2.pt",map_location=torch.device('cpu')))
-# c = 0
-# for input_id, mask, labelsA, labelsB in ts:
+def multiple_eval(modelA: BertModel, modelB: BertModel, dataset: DataFrame, conf: Configuration, handler: dict):
+    n_labs = handler["a"].labels("num")
+    mapperA = handler["a"].ids_to_labels
+    confusionA = torch.zeros(size=(n_labs, n_labs))
 
-#   logits = modelB(input_id, mask, None)
-#   # print(input_id.shape)
-#   # predictions = logits[0][labelsA[0] != -100].argmax(dim=1)
-#   input_id = input_id.squeeze()
-#   print(logits[0].squeeze().argmax(dim=1))
-#   # labels = merge_label(labelsA,labelsB)
-#   if c == 1:
-#     break
-#   else:
-#     c += 1
+    n_labs = handler["b"].labels("num")
+    mapperB = handler["b"].ids_to_labels
+    confusionB = torch.zeros(size=(n_labs, n_labs))
 
-# model = BertModel(conf.bert, parser.labels("num"))
-# model.load_state_dict(torch.load(conf.folder + "tmp/modelA1.pt"))
+    tokenizer = AutoTokenizer.from_pretrained(conf.bert)
+    for row in tqdm(dataset.itertuples(), total=dataset.shape[0]):
 
-# if conf.cuda:
-#   model = model.to("cuda:0")
+        tokens, labelsA, labelsB = row[1].split(), row[3].split(), row[4].split()
 
-# # train(model, parser, df_train, df_val, conf)
-# # # Evaluation single tag modelA e tagA, modelB e tagB
-# # # ensembling modelA modelB tag A e b
-# # # evaludation modelAB e tag AeB
+        # Create a tokenized text
+        token_text = tokenizer(tokens, max_length=512, truncation=True, is_split_into_words=True, return_tensors="pt")
 
-# def single_eval(model:BertModel, parser:Parser, conf:Configuration, df:DataFrame):
+        # Align both list of labels
+        labelsA = handler["a"].align_label(token_text.word_ids(), labelsA)
+        labelsB = handler["b"].align_label(token_text.word_ids(), labelsB)
+        # Create a mask to select values that are different from -100
+        mask = [True if i != -100 else False for i in labelsA]
 
-#   ts = DataLoader(NerDataset(df, conf, parser), collate_fn=padding_batch, batch_size=1)
+        # ==== PREDICT ====
+        # Give the same sentence to both model
+        input_ids = token_text['input_ids'].to("cuda:0")
+        attention_mask = token_text['attention_mask'].to("cuda:0")
 
-#   max_label = parser.labels("num")
-#   default_id = parser.entity_handler.labels_to_ids["O"]
+        logitsA = modelA(input_ids, attention_mask, None)
+        logitsB = modelB(input_ids, attention_mask, None)
+        # Return different labels
+        logitsA = logitsA[0].squeeze().argmax(dim=1)[mask]
+        logitsB = logitsB[0].squeeze().argmax(dim=1)[mask]
+        unified_predict = merge_labels(convert(logitsA, mapperA), convert(logitsB, mapperB))
+        # ==== PREDICT ====
 
-#   matrix_results = torch.zeros(size=(max_label, max_label))
+        labelsA = convert(np.array(labelsA)[mask], mapperA)
+        labelsB = convert(np.array(labelsB)[mask], mapperB)
+        unified_labels = merge_labels(labelsA, labelsB)
 
-#   iter_label = range(max_label)
-#   accuracy: Tensor = torch.zeros(max_label)
-#   precision: Tensor = torch.zeros(max_label)
-#   recall: Tensor = torch.zeros(max_label)
-#   f1: Tensor = torch.zeros(max_label)
+        for lbl, pre in zip(unified_labels, unified_predict):
+            idx_l = handler["a"].labels_to_ids[lbl[0]]
+            idx_p = handler["a"].labels_to_ids[pre[0]]
+            confusionA[idx_l, idx_p] += 1
 
-#   loss_ts = 0
-#   # ========== Testing Phase ==========
-#   with no_grad():
-#       for input_id, mask, ts_label in tqdm(ts):
-#           loss, logits = model(input_id, mask, ts_label)
-#           loss_ts += loss.item()
+            idx_l = handler["b"].labels_to_ids[lbl[1]]
+            idx_p = handler["b"].labels_to_ids[pre[1]]
+            confusionB[idx_l, idx_p] += 1
 
-#           label_clean = ts_label[0][ts_label[0] != -100]
-#           predictions = logits[0][ts_label[0] != -100].argmax(dim=1)
+    return scores(confusionA, mapperA), scores(confusionB, mapperB)
 
-#           for lbl, pre in zip(label_clean, predictions):
-#             if pre >= max_label:
-#               pre = default_id
-#             matrix_results[lbl, pre] += 1
-#   # ========== Testing Phase ==========
-#   loss_ts = loss_ts / len(ts)
 
-#   for i in iter_label:
-#       fn = torch.sum(matrix_results[i, :i]) + torch.sum(matrix_results[i, i + 1:])
-#       fp = torch.sum(matrix_results[:i, i]) + torch.sum(matrix_results[i + 1:, i])
-#       tn, tp = 0, matrix_results[i, i]
-#       for x in iter_label:
-#           for y in iter_label:
-#               if (x != i) & (y != i):
-#                   tn += matrix_results[x, y]
-#       accuracy[i] = (tp + tn) / (tp + fn + fp + tn)
-#       precision[i] = tp / (tp + fp)
-#       recall[i] = tp / (tp + fn)
-#       f1[i] = 2 * (precision[i] * recall[i]) / (precision[i] + recall[i])
+def single_eval(model: BertModel, dataset: DataFrame, conf: Configuration, handler):
+    n_labs = handler.labels("num")
+    mapper = handler.ids_to_labels
+    confusion = torch.zeros(size=(n_labs, n_labs))
 
-#   print(loss_ts)
-#   return {
-#     "Accuracy": accuracy,
-#     "Precision": precision,
-#     "Recall": recall,
-#     "F1 score": f1}
-# single_eval(model,parser,conf,df_test)
+    tokenizer = AutoTokenizer.from_pretrained(conf.bert)
+    for row in tqdm(dataset.itertuples(), total=dataset.shape[0]):
+
+        tokens, labelsA, labelsB = row[1].split(), row[3].split(), row[4].split()
+
+        # Create a tokenized text
+        token_text = tokenizer(tokens, max_length=512, truncation=True, is_split_into_words=True, return_tensors="pt")
+
+        # Align both list of labels
+        labelsA = handler.align_label(token_text.word_ids(), labelsA)
+        labelsB = handler.align_label(token_text.word_ids(), labelsB)
+
+        # Create a mask to select values that are different from -100
+        mask = [True if i != -100 else False for i in labelsA]
+
+        # ==== PREDICT ====
+        # Give the same sentence to both model
+        input_ids = token_text['input_ids'].to("cuda:0")
+        attention_mask = token_text['attention_mask'].to("cuda:0")
+
+        logits = model(input_ids, attention_mask, None)
+        # Return different labels
+        logits = logits[0].squeeze().argmax(dim=1)[mask]
+
+        predict = convert(logits, mapper)
+        # ==== PREDICT ====
+
+        labelsA = convert(np.array(labelsA)[mask], mapper)
+        labelsB = convert(np.array(labelsB)[mask], mapper)
+        unified_labels = unify_labels(labelsA, labelsB)
+
+        for lbl, pre in zip(unified_labels, predict):
+
+            if isinstance(lbl, str):
+                idx_l = handler.labels_to_ids[lbl]
+                idx_p = handler.labels_to_ids[pre]
+                confusion[idx_l, idx_p] += 1
+
+            elif isinstance(lbl, list):
+                for tag in lbl:
+                    idx_l = handler.labels_to_ids[tag]
+                    idx_p = handler.labels_to_ids[pre]
+                    confusion[idx_l, idx_p] += 1
+
+    return scores(confusion, mapper)

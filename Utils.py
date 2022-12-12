@@ -17,22 +17,6 @@ def padding_batch(data):
 
     return inputs_ids, mask, label
 
-# def padding_batch2(batch):
-
-#     inputs_ids, mask, labelA, labelB = [], [], [], []
-#     for values in batch:
-#       inputs_ids.append(values[0])
-#       mask.append(values[1])
-#       labelA.append(values[2])
-#       labelB.append(values[3])
-
-#     inputs_ids = pad_sequence(inputs_ids, batch_first=True)
-#     mask = pad_sequence(mask, batch_first=True)
-#     labelA = pad_sequence(labelA, batch_first=True)
-#     labelB = pad_sequence(labelB, batch_first=True)
-
-#     return inputs_ids, mask, labelA, labelB
-
 
 class EarlyStopping:
     def __init__(self, patience: int):

@@ -1,14 +1,22 @@
+from typing import Tuple
+
+import Configuration
 import itertools
 
 import numpy as np
 from pandas import DataFrame
 
-import Configuration
 
-
-def buildDataset(type_entity: str, conf: Configuration):
+def buildDataset(type_entity: str, conf: Configuration) -> Tuple[DataFrame, set]:
+    """
+    buildDataset function take as input the type of entity (es "a") and creates a dataframe
+    where there are the sentences and labels associated to mentioned type
+    :param type_entity: name of group of entity
+    :param conf: configuration class
+    :return: sentences,pos tag and labels dataframe
+    """
     sentences, pos_tags, list_of_labels = [], [], []
-    set_of_entity = set()  # set of unique entity found
+    set_of_entity = set()  # set of unique entity found (incrementally updated)
 
     for file_name in conf.files:  # iterate all files "esami","anamesi"..
 
@@ -75,10 +83,37 @@ class EntityHandler:
         # Give id returns a label : id --> label
         self.ids_to_labels: dict = {v: k for v, k in enumerate(sorted(set_entities))}
 
-    def align_label(self, token: list, labels: list) -> list:
+    def align_label(self, tokens: list, labels: list) -> list:
+
         # We can all ids in the token, and we try to associate to a label
-        label_ids = [-100 if word_idx is None else self.labels_to_ids[labels[word_idx]] for word_idx in token]
+        prev = None
+        label_ids = []
+
+        for word_idx in tokens:
+            if word_idx is None:
+                label_ids.append(-100)
+            elif word_idx != prev:
+                try:
+                    label_ids.append(self.labels_to_ids[labels[word_idx]])
+                except ValueError:
+                    label_ids.append(-100)
+            else:
+                label_ids.append(-100)
+            prev = word_idx
+
+        # label_ids = [-100 if word_idx is None else self.labels_to_ids[labels[word_idx]] for word_idx in token]
         return label_ids
+
+    def get_sentences(self):
+        return self.dt
+
+    def labels(self, typ: str):
+        if typ == "set":
+            return self.set_entities
+        if typ == "num":
+            return len(self.set_entities)
+        elif typ == "dict":
+            return self.ids_to_labels
 
 
 class Splitting:
@@ -89,7 +124,7 @@ class Splitting:
         self.ts_size: float = 0.1  # Test set dimensions
         # ========== PARAMETERS ==========
 
-    def holdout(self, df: DataFrame, size: float = 0.5) -> DataFrame:
+    def holdout(self, df: DataFrame, size: float = 1) -> DataFrame:
         """
         Dividing the final dataset base on holdout technique
         """
