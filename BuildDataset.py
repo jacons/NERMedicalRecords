@@ -1,45 +1,47 @@
 from pandas import DataFrame
-from torch import LongTensor
+from torch import Tensor, LongTensor
 from torch.utils.data import Dataset
 from tqdm import tqdm
-from transformers import AutoTokenizer
+from transformers import BertTokenizerFast
 
 from Configuration import Configuration
-from Parser.parser_utils import EntityHandler
+from Parser.parser_utils import EntityHandler, align_tags
 
 
 class NerDataset(Dataset):
     # We try to preprocess the data as much as possible.
     def __init__(self, dataset: DataFrame, conf: Configuration, e_handler: EntityHandler):
-        self.__input_ids, self.__mask, self.__labels = [], [], []
 
-        tokenizer = AutoTokenizer.from_pretrained(conf.bert)
+        self.list_of_tokens, self.list_of_att_masks, self.list_of_tag_masks, self.list_of_labels = [], [], [], []
 
+        tokenizer = BertTokenizerFast.from_pretrained(conf.bert)
         for type_of_entity in conf.type_of_entity:
             for _, row in tqdm(dataset[["Sentences", "Labels_" + str(type_of_entity)]].iterrows(),
                                total=dataset.shape[0]):
-                tokens, _labels = row[0].split(), row[1].split()
 
-                # Apply the tokenization at each row
-                token_text = tokenizer(tokens, max_length=512, truncation=True, is_split_into_words=True,
-                                       return_tensors="pt")
+                tokens, labels = row[0].split(), row[1].split()
 
-                label_ids = e_handler.align_label(token_text.word_ids(), _labels)
-                input_ = token_text['input_ids'].squeeze(0)
-                mask_ = token_text['attention_mask'].squeeze(0)
-                label_ = LongTensor(label_ids)
+                token_text = tokenizer(tokens, is_split_into_words=True)
+                aligned_labels, tag_mask = align_tags(labels, token_text.word_ids())
+
+                input_ids = Tensor(token_text["input_ids"])
+                mask = Tensor(token_text["attention_mask"])
+                tag_mask = Tensor(tag_mask)
+                labels_ids = LongTensor([e_handler.label2id[tag] for tag in aligned_labels])
 
                 if conf.cuda:
-                    input_ = input_.to("cuda:0")
-                    mask_ = mask_.to("cuda:0")
-                    label_ = label_.to("cuda:0")
+                    input_ids = input_ids.to("cuda:0")
+                    mask = mask.to("cuda:0")
+                    labels_ids = labels_ids.to("cuda:0")
 
-                self.__input_ids.append(input_)
-                self.__mask.append(mask_)
-                self.__labels.append(label_)
+                self.list_of_tokens.append(input_ids)
+                self.list_of_att_masks.append(mask)
+                self.list_of_tag_masks.append(tag_mask)
+                self.list_of_labels.append(labels_ids)
 
     def __len__(self):
-        return len(self.__labels)
+        return len(self.list_of_labels)
 
     def __getitem__(self, idx):
-        return self.__input_ids[idx], self.__mask[idx], self.__labels[idx]
+        return self.list_of_tokens[idx], self.list_of_att_masks[idx],\
+            self.list_of_tag_masks[idx], self.list_of_labels[idx]

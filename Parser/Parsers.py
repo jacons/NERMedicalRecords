@@ -2,7 +2,7 @@ from typing import Tuple
 
 from pandas import concat, DataFrame
 
-from Configuration import Configuration
+import Configuration
 from Parser.parser_utils import EntityHandler, buildDataset
 
 
@@ -29,8 +29,7 @@ def EnsembleParser(conf: Configuration) -> Tuple[dict, DataFrame]:
     for e in conf.type_of_entity:  # iterate all type of entity es a, b or both
         dt, labels = buildDataset(e, conf)
 
-        h = EntityHandler(e, dt, labels)
-        entity_handlers[e] = h
+        entity_handlers[e] = EntityHandler(e, dt, labels)
         datasets.append(dt)
 
     datasets = concat(datasets, axis=1)

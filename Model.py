@@ -1,5 +1,5 @@
-from torch.nn import Module
-from transformers import AutoModelForMaskedLM
+from torch import Module
+from transformers import BertForTokenClassification
 
 
 class BertModel(Module):
@@ -11,7 +11,7 @@ class BertModel(Module):
         :param frozen: True to freeze the deep parameters
         """
         super(BertModel, self).__init__()
-        self.bert = AutoModelForMaskedLM.from_pretrained(bert, num_labels=tot_labels)
+        self.bert = BertForTokenClassification.from_pretrained(bert, num_labels=tot_labels)
         if frozen:
             for param in self.bert.bert.parameters():
                 param.requires_grad = False

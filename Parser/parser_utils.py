@@ -1,46 +1,10 @@
-from typing import Tuple
-
-import Configuration
 import itertools
+from typing import Tuple
 
 import numpy as np
 from pandas import DataFrame
 
-
-def buildDataset(type_entity: str, conf: Configuration) -> Tuple[DataFrame, set]:
-    """
-    buildDataset function take as input the type of entity (es "a") and creates a dataframe
-    where there are the sentences and labels associated to mentioned type
-    :param type_entity: name of group of entity
-    :param conf: configuration class
-    :return: sentences,pos tag and labels dataframe
-    """
-    sentences, pos_tags, list_of_labels = [], [], []
-    set_of_entity = set()  # set of unique entity found (incrementally updated)
-
-    for file_name in conf.files:  # iterate all files "esami","anamesi"..
-
-        # find the correct path to load
-        id_file = conf.paths[file_name]["type"].index(type_entity)
-        path_file = conf.paths[file_name]["files"][id_file]
-
-        gen = read_conll(path_file)  # generator
-        is_end = False
-        while not is_end:
-            values = next(gen)  # extract next sentence
-            if not values[-1]:  # Termination check
-                is_end = True
-            else:
-                sentences.append(values[0])
-                pos_tags.append(values[1])
-                list_of_labels.append(" ".join(values[2]))
-                set_of_entity.update(values[2])
-
-        print("|{:^41}|{:^20}|{:^20}|".format("Sentences and tags found",
-                                              len(sentences), len(set_of_entity)) + "\n" + "-" * 85)
-
-    t = {"Sentences": sentences, "PosTag": pos_tags, "Labels_" + str(type_entity): list_of_labels}
-    return DataFrame(t).drop_duplicates(), set_of_entity
+import Configuration
 
 
 def read_conll(path: str):
@@ -60,49 +24,82 @@ def read_conll(path: str):
             fields = [line.split() for line in lines if not line.startswith('-DOCSTART-')]
             if len(fields) == 0:
                 continue
-            words, tags, entities = [], [], []
+            tokens, entities = [], []
             for row in fields:
                 # Sometimes there are more "words" associated to a single tag. Es "date"
                 half = int(len(row) / 2) - 1
-                word, pos_tag, entity = row[:half], row[half], row[-1]
-                words.append("-".join(word))
-                tags.append(pos_tag)
+                token, entity = row[:half], row[-1]
+                tokens.append("-".join(token))
                 entities.append(entity)
-            yield " ".join(words), " ".join(tags), entities, True
-    yield None, None, None, False
+            yield tokens, entities
+
+
+def align_tags(labels: list, word_ids: list) -> Tuple[list, list]:
+    aligned_labels = []
+    maks = [False] * len(word_ids)
+    prev_id = None
+
+    for idx, word_id in enumerate(word_ids):
+
+        if word_id is None:
+            aligned_labels.append("O")
+
+        elif word_id != prev_id:
+            aligned_labels.append(labels[word_id])
+            maks[idx] = True
+
+        elif word_id == prev_id:
+            if labels[word_id][0] == "B":
+                aligned_labels.append("I" + labels[word_id][1:])
+            else:
+                aligned_labels.append(labels[word_id])
+
+        prev_id = word_id
+    return aligned_labels, maks
+
+
+def buildDataset(type_entity: str, conf: Configuration):
+    """
+    buildDataset function take as input the type of entity (es "a") and creates a dataframe
+    where there are the sentences and labels associated to mentioned type
+    :param type_entity: name of group of entity
+    :param conf: configuration class
+    :return: sentences and labels dataframe
+    """
+    sentences, list_of_labels = [], []
+    set_of_entity = set()  # set of unique entity found (incrementally updated)
+
+    for file_name in conf.files:  # iterate all files "esami","anamesi"..
+
+        # find the correct path to load
+        id_file = conf.paths[file_name]["type"].index(type_entity)
+        path_file = conf.paths[file_name]["files"][id_file]
+
+        for field in read_conll(path_file):  # generator
+
+            tokens, labels = field[0], field[1]
+
+            sentences.append(" ".join(tokens))
+            list_of_labels.append(" ".join(labels))
+            set_of_entity.update(labels)
+
+        print("|{:^41}|{:^20}|{:^20}|".format("Sentences and tags", len(sentences), len(set_of_entity)))
+        print("-" * 85)
+
+    t = {"Sentences": sentences, "Labels_" + str(type_entity): list_of_labels}
+    return DataFrame(t).drop_duplicates(), set_of_entity
 
 
 class EntityHandler:
     def __init__(self, name: str, dt: DataFrame, set_entities: set):
-        self.name = name
-        self.dt = dt
-        self.set_entities = set_entities
+        self.name = name  # name of group of files
+        self.dt = dt  # dataframe of sentences
+        self.set_entities = set_entities  # set of all entity detected
 
         # Give a label returns id : label --> id
-        self.labels_to_ids: dict = {k: v for v, k in enumerate(sorted(set_entities))}
+        self.label2id: dict = {k: v for v, k in enumerate(sorted(set_entities))}
         # Give id returns a label : id --> label
-        self.ids_to_labels: dict = {v: k for v, k in enumerate(sorted(set_entities))}
-
-    def align_label(self, tokens: list, labels: list) -> list:
-
-        # We can all ids in the token, and we try to associate to a label
-        prev = None
-        label_ids = []
-
-        for word_idx in tokens:
-            if word_idx is None:
-                label_ids.append(-100)
-            elif word_idx != prev:
-                try:
-                    label_ids.append(self.labels_to_ids[labels[word_idx]])
-                except ValueError:
-                    label_ids.append(-100)
-            else:
-                label_ids.append(-100)
-            prev = word_idx
-
-        # label_ids = [-100 if word_idx is None else self.labels_to_ids[labels[word_idx]] for word_idx in token]
-        return label_ids
+        self.id2label: dict = {v: k for v, k in enumerate(sorted(set_entities))}
 
     def get_sentences(self):
         return self.dt
@@ -113,7 +110,7 @@ class EntityHandler:
         if typ == "num":
             return len(self.set_entities)
         elif typ == "dict":
-            return self.ids_to_labels
+            return self.id2label
 
 
 class Splitting:
@@ -126,8 +123,8 @@ class Splitting:
 
     def holdout(self, df: DataFrame, size: float = 1) -> DataFrame:
         """
-        Dividing the final dataset base on holdout technique
-        """
+                Dividing the final dataset base on holdout technique
+                """
         # Apply a subsampling to reduce the dimension of dataset
         df = df.sample(frac=size, random_state=42)
 
@@ -136,5 +133,6 @@ class Splitting:
         vl = int(self.vl_size * length)
         ts = int(self.ts_size * length)
 
-        print("|{:^27}|{:^27}|{:^27}|".format("TR: " + str(tr), "VL: " + str(vl), "TS: " + str(ts)) + "\n" + "-" * 85)
+        print("|{:^27}|{:^27}|{:^27}|".format("TR: " + str(tr), "VL: " + str(vl),
+                                              "TS: " + str(ts)) + "\n" + "-" * 85)
         return np.split(df, [tr, int((self.tr_size + self.vl_size) * length)])

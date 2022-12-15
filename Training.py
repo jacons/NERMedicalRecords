@@ -1,20 +1,20 @@
 from pandas import DataFrame
 from torch import no_grad
-from torch.optim import SGD
+from torch.optim.sgd import SGD
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
+import Configuration
 from BuildDataset import NerDataset
-from Configuration import Configuration
 from Model import BertModel
 from Utils import padding_batch, EarlyStopping, ModelVersion
 
 
-def train(model: BertModel, e_handler, df_train: DataFrame, df_val: DataFrame, conf: Configuration):
+def train(model, e_handler, df_train: DataFrame, df_val: DataFrame, conf: Configuration):
     # We create an iterator for training e validation dataset
     print("Creating Dataloader for Training set")
-    tr = DataLoader(NerDataset(df_train, conf, e_handler), collate_fn=padding_batch, batch_size=conf.param["batch_size"],
-                    shuffle=True)
+    tr = DataLoader(NerDataset(df_train, conf, e_handler), collate_fn=padding_batch,
+                    batch_size=conf.param["batch_size"], shuffle=True)
 
     print("\nCreating Dataloader for Validation set")
     vl = DataLoader(NerDataset(df_val, conf, e_handler), collate_fn=padding_batch, batch_size=1)
