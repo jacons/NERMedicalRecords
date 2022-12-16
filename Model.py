@@ -1,4 +1,4 @@
-from torch import Module
+from torch.nn import Module
 from transformers import BertForTokenClassification
 
 

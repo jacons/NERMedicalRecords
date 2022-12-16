@@ -123,8 +123,8 @@ class Splitting:
 
     def holdout(self, df: DataFrame, size: float = 1) -> DataFrame:
         """
-                Dividing the final dataset base on holdout technique
-                """
+        Dividing the final dataset base on holdout technique
+        """
         # Apply a subsampling to reduce the dimension of dataset
         df = df.sample(frac=size, random_state=42)
 

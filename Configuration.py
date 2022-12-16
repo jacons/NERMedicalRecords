@@ -12,12 +12,12 @@ class Configuration:
 
         # Hyperparameters
         self.param: dict = {
-            "lr": 0.009,
+            "lr": 0.010,
             "momentum": 0.9,
             "weight_decay": 0,
             "batch_size": 2,
             "model_name": "modelB2",
-            "max_epoch": 8,
+            "max_epoch": 5,
             "early_stopping": 3,
             "nesterov": True,
             "cache": True
@@ -26,13 +26,12 @@ class Configuration:
         # We can choose if train the model with different group of entity defined in the path dictionary
         self.type_of_entity = ["a"]
 
-        self.folder = "/content/drive/MyDrive/NERforMedicalRecords/"
-        # self.folder = "K:/Universita/[IA] Artificial Intelligence/[HLT] Human Language " \
-        #                    "Technologies/NERforMedicalRecords/"
+        # self.folder = "/content/drive/MyDrive/NERforMedicalRecords/"
+        self.folder = "K:/Universita/[IA] Artificial Intelligence/[HLT] Human Language " \
+                      "Technologies/NERforMedicalRecords/"
 
         # The system recognize if there are some GPU available
         self.cuda = True if torch.cuda.is_available() else False
-
         # Constants
         self.bert = "dbmdz/bert-base-italian-xxl-cased"  # Bert model as baseline
         self.files = ["anamnesi", "esami"]

@@ -1,13 +1,40 @@
-import numpy as np
 import torch
 from pandas import DataFrame
 from torch import Tensor
-from tqdm import tqdm
-from transformers import AutoTokenizer
 
-from Configuration import Configuration
-from Model import BertModel
-from Parser.parser_utils import EntityHandler
+
+def metrics(confusion: Tensor, all_metrics=False):
+    length = confusion.shape[0]
+    iter_label = range(length)
+
+    accuracy: Tensor = torch.zeros(length)
+    precision: Tensor = torch.zeros(length)
+    recall: Tensor = torch.zeros(length)
+    f1: Tensor = torch.zeros(length)
+
+    for i in iter_label:
+        fn = torch.sum(confusion[i, :i]) + torch.sum(confusion[i, i + 1:])  # false negative
+        fp = torch.sum(confusion[:i, i]) + torch.sum(confusion[i + 1:, i])  # false positive
+        tn, tp = 0, confusion[i, i]  # true negative, true positive
+
+        for x in iter_label:
+            for y in iter_label:
+                if (x != i) & (y != i):
+                    tn += confusion[x, y]
+
+        accuracy[i] = (tp + tn) / (tp + fn + fp + tn)
+        precision[i] = tp / (tp + fp)
+        recall[i] = tp / (tp + fn)
+        f1[i] = 2 * (precision[i] * recall[i]) / (precision[i] + recall[i])
+
+    if all_metrics:
+        return DataFrame({
+                "Accuracy": accuracy.tolist(),
+                "Precision": precision.tolist(),
+                "Recall": recall.tolist(),
+                "F1": f1.tolist()})
+    else:
+        return f1.mean()
 
 
 """
