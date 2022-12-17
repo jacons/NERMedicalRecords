@@ -1,4 +1,4 @@
-from math import inf
+from math import inf, isnan
 
 from torch import save
 from torch.nn.utils.rnn import pad_sequence
@@ -27,11 +27,12 @@ class ModelVersion:
         self.model_name = name
         self.list_vl_loss: list = []
 
-    def update(self, model, vl_loss: float):
-        if (len(self.list_vl_loss) == 0) or (vl_loss < min(self.list_vl_loss)):
+    def update(self, model, metric: float):
+        if (len(self.list_vl_loss) == 0) or (metric > max(self.list_vl_loss)):
             save(model.state_dict(), self.folder + "tmp/" + self.model_name + ".pt")
             print("Saved")
-        self.list_vl_loss.append(vl_loss)
+        if not isnan(metric):
+            self.list_vl_loss.append(metric)
 
 
 def padding_batch(batch: list):

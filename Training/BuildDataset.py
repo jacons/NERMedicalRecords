@@ -1,5 +1,5 @@
 from pandas import DataFrame
-from torch import Tensor, LongTensor, IntTensor, BoolTensor
+from torch import LongTensor, IntTensor, BoolTensor
 from torch.utils.data import Dataset
 from tqdm import tqdm
 from transformers import BertTokenizerFast
