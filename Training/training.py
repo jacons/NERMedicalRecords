@@ -6,9 +6,9 @@ from torch.optim.sgd import SGD
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-import Configuration
-from BuildDataset import NerDataset
-from Evaluation.Metrics import metrics
+import configuration
+from Parser.NERDataset import NerDataset
+from Evaluation.metrics import scores
 from training_utils import padding_batch, EarlyStopping, ModelVersion
 
 
@@ -70,7 +70,7 @@ def train(model, e_handler, df_train: DataFrame, df_val: DataFrame, conf: Config
         # ========== Validation Phase ==========
 
         tr_loss, val_loss = (loss_train / tr_size), (loss_val / vl_size)
-        f1_score = metrics(confusion)
+        f1_score = scores(confusion)
 
         scheduler.step(val_loss)
         # Update the early stopping controller based on f1-score
@@ -80,4 +80,4 @@ def train(model, e_handler, df_train: DataFrame, df_val: DataFrame, conf: Config
         epoch += 1
 
         if model_version is not None:
-            model_version.update(model, f1_score)
+            model_version.update(model, val_loss)

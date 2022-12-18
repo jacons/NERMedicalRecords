@@ -4,7 +4,7 @@ from typing import Tuple
 import numpy as np
 from pandas import DataFrame
 
-import Configuration
+import configuration
 
 
 def read_conll(path: str):

@@ -2,7 +2,7 @@ from typing import Tuple
 
 from pandas import concat, DataFrame
 
-import Configuration
+import configuration
 from Parser.parser_utils import EntityHandler, buildDataset
 
 

@@ -28,7 +28,7 @@ class ModelVersion:
         self.list_vl_loss: list = []
 
     def update(self, model, metric: float):
-        if (len(self.list_vl_loss) == 0) or (metric > max(self.list_vl_loss)):
+        if (len(self.list_vl_loss) == 0) or (metric < min(self.list_vl_loss)):
             save(model.state_dict(), self.folder + "tmp/" + self.model_name + ".pt")
             print("Saved")
         if not isnan(metric):
