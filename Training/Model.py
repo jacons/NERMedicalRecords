@@ -13,8 +13,9 @@ class BertModel(Module):
         super(BertModel, self).__init__()
         self.bert = BertForTokenClassification.from_pretrained(bert, num_labels=tot_labels)
         if frozen:
-            for param in self.bert.bert.parameters():
-                param.requires_grad = False
+            for name, param in self.bert.bert.named_parameters():
+                if not name.startswith("encoder.layer.11"):
+                    param.requires_grad = False
         return
 
     def forward(self, input_id, mask, label):

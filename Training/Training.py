@@ -50,7 +50,7 @@ def train(model, e_handler, df_train: DataFrame, df_val: DataFrame, conf: Config
             loss, _ = model(inputs_ids, att_mask, labels)
             loss_train += loss.item()
             loss.backward()
-            clip_grad_norm_(model.parameters(), 1.0)
+            clip_grad_norm_(model.parameters(), 2.0)
             optimizer.step()
         # ========== Training Phase ==========
 
