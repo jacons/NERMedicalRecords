@@ -6,8 +6,8 @@ from tqdm import tqdm
 
 import configuration
 from Parser.parser_utils import EntityHandler
-from Training import NERClassifier
 from Parser.NERDataset import NerDataset
+from Training.NER_model import NERClassifier
 from Training.training_utils import padding_batch
 
 
@@ -45,7 +45,8 @@ def scores(confusion: Tensor, all_metrics=False):
         return f1.mean()
 
 
-def single_eval(model: NERClassifier, dataset: DataFrame, conf: configuration.Configuration, handler: EntityHandler) -> DataFrame:
+def single_eval(model: NERClassifier, dataset: DataFrame, conf: configuration.Configuration,
+                handler: EntityHandler) -> DataFrame:
     # evaluate the dataframe with a single model
 
     ts = DataLoader(NerDataset(dataset, conf, handler), collate_fn=padding_batch)

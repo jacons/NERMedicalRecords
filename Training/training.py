@@ -6,10 +6,10 @@ from torch.optim.sgd import SGD
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-import configuration
 from Parser.NERDataset import NerDataset
 from Evaluation.metrics import scores
-from training_utils import padding_batch, EarlyStopping, ModelVersion
+from Training.training_utils import padding_batch, EarlyStopping, ModelVersion
+from configuration import Configuration
 
 
 def train(model, e_handler, df_train: DataFrame, df_val: DataFrame, conf: Configuration):

@@ -12,19 +12,19 @@ class Configuration:
 
         # Hyperparameters
         self.param: dict = {
-            "lr": 0.010,
-            "momentum": 0.9,
-            "weight_decay": 0,
+            "lr": 0.006,
+            "momentum": 0.6,
+            "weight_decay": 0.0002,
             "batch_size": 2,
-            "model_name": "modelB2",
-            "max_epoch": 5,
+            "model_name": "modelA2",
+            "max_epoch": 10,
             "early_stopping": 3,
             "nesterov": True,
             "cache": True
         }
 
         # We can choose if train the model with different group of entity defined in the path dictionary
-        self.type_of_entity = ["a"]
+        self.type_of_entity = ["b"]
 
         # self.folder = "/content/drive/MyDrive/NERforMedicalRecords/"
         self.folder = "K:/Universita/[IA] Artificial Intelligence/[HLT] Human Language " \

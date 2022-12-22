@@ -2,8 +2,8 @@ from typing import Tuple
 
 from pandas import concat, DataFrame
 
-import configuration
 from Parser.parser_utils import EntityHandler, buildDataset
+from configuration import Configuration
 
 
 def Parser(conf: Configuration) -> EntityHandler:

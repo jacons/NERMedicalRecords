@@ -2,7 +2,7 @@ from torch import IntTensor, BoolTensor, masked_select
 from transformers import BertTokenizerFast
 
 from Parser.parser_utils import EntityHandler
-from Training import NERClassifier
+from Training import NER_model
 from configuration import Configuration
 
 
