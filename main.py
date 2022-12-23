@@ -1,5 +1,8 @@
+import torch
+
+from Evaluation.metrics import eval_model
 from Parser.parser_utils import Splitting
-from Parser.parsers import Parser
+from Parser.parsers import Parser, EnsembleParser
 from Training.NER_model import NERClassifier
 from Training.training import train
 from configuration import Configuration
@@ -7,16 +10,22 @@ from configuration import Configuration
 if __name__ == "__main__":
 
     conf = Configuration(["files", "param", "bert"])
-    e_handler = Parser(conf)
-    df_train, df_val, df_test = Splitting().holdout(e_handler.get_sentences())
+    # e_handler = Parser(conf)
+    handlers, unified_dt = EnsembleParser(conf)
+    df_train, df_val, df_test = Splitting().holdout(unified_dt)
 
-    model = NERClassifier(conf.bert, e_handler.labels("num"))
-    # model.load_state_dict(torch.load(conf.folder + "tmp/modelA2.pt"))
+    modelA = NERClassifier(conf.bert, handlers["a"].labels("num"))
+    modelA.load_state_dict(torch.load("K:/NoSyncCache/Models/A/modelH1.pt"))
+
+    modelB = NERClassifier(conf.bert, handlers["b"].labels("num"))
+    modelB.load_state_dict(torch.load("K:/NoSyncCache/Models/B/modelE2.pt"))
 
     if conf.cuda:
-        model = model.to("cuda:0")
+        modelA = modelA.to("cuda:0")
+        modelB = modelB.to("cuda:0")
 
-    train(model, e_handler, df_train, df_val, conf)
+    eval_model(modelA, df_test[["Sentences", "Labels_a"]], conf, handlers["a"])
+    #  train(model, e_handler, df_train, df_val, conf)
 
 # Epochs: 1  | Loss:  0.0344 | Val_Loss:  0.0260 | F1:  0.9143
 # Epochs: 2  | Loss:  0.0165 | Val_Loss:  0.0227 | F1:  0.9299

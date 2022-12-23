@@ -1,11 +1,13 @@
 import torch
 from pandas import DataFrame
-from torch import Tensor, no_grad, masked_select, zeros
+from torch import Tensor, no_grad, masked_select, zeros, IntTensor, BoolTensor, LongTensor
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+from transformers import BertTokenizerFast
+
 from Evaluation.conlleval import evaluate
 from Parser.NERDataset import NerDataset
-from Parser.parser_utils import EntityHandler
+from Parser.parser_utils import EntityHandler, align_tags
 from Training.NER_model import NERClassifier
 from configuration import Configuration
 
@@ -50,28 +52,46 @@ def scores(confusion: Tensor, all_metrics=False):
 def eval_model(model: NERClassifier, dataset: DataFrame, conf: Configuration,
                handler: EntityHandler, result="conlleval"):
 
+    model.eval()
     true_label, pred_label = [], []  # using for conlleval
     max_labels = handler.labels("num")
     confusion = zeros(size=(max_labels, max_labels))
+    tokenizer = BertTokenizerFast.from_pretrained(conf.bert)
 
-    # evaluate the dataframe with a single model
-    ts = DataLoader(NerDataset(dataset, conf, handler))
-    with no_grad():  # Validation phase
-        for inputs_ids, att_mask, tag_maks, labels in tqdm(ts):
-            logits = model(inputs_ids, att_mask, None)
-            logits = logits[0].squeeze(0).argmax(1)
-            logits = masked_select(logits, tag_maks)
-            labels = masked_select(labels, tag_maks)
+    for _, row in tqdm(dataset.iterrows(), total=dataset.shape[0]):
 
-            # before mapping id -> labels
-            for lbl, pre in zip(labels, logits):
-                confusion[lbl, pre] += 1
+        # tokens = ["Hi","How","are","you"]
+        tokens, labels = row[0].split(), row[1].split()
 
-            labels = handler.map_id2lab(labels, is_tensor=True)
-            logits = handler.map_id2lab(logits, is_tensor=True)
+        token_text = tokenizer(tokens, is_split_into_words=True)
+        aligned_labels, tag_mask = align_tags(labels, token_text.word_ids())
 
-            true_label.extend(labels)
-            pred_label.extend(logits)
+        input_ids = IntTensor(token_text["input_ids"])
+        att_mask = IntTensor(token_text["attention_mask"])
+        tag_mask = BoolTensor(tag_mask)  # using to correct classify the tags
+
+        labels_ids = LongTensor(handler.map_lab2id(aligned_labels))
+
+        if conf.cuda:
+            input_ids = input_ids.to("cuda:0").unsqueeze(0)
+            att_mask = att_mask.to("cuda:0").unsqueeze(0)
+            tag_mask = tag_mask.to("cuda:0")
+            labels_ids = labels_ids.to("cuda:0")
+
+        logits = model(input_ids, att_mask, None)
+        logits = logits[0].squeeze(0).argmax(1)
+        logits = masked_select(logits, tag_mask)
+        labels = masked_select(labels_ids, tag_mask)
+
+        # before mapping id -> labels
+        for lbl, pre in zip(labels, logits):
+            confusion[lbl, pre] += 1
+
+        labels = handler.map_id2lab(labels, is_tensor=True)
+        logits = handler.map_id2lab(logits, is_tensor=True)
+
+        true_label.extend(labels)
+        pred_label.extend(logits)
 
     if result == "conlleval":
         evaluate(true_label, pred_label)
