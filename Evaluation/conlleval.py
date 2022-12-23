@@ -1,28 +1,4 @@
-"""
-This script applies to IOB2 or IOBES tagging scheme.
-If you are using a different scheme, please convert to IOB2 or IOBES.
-IOB2:
-- B = begin,
-- I = inside but not the first,
-- O = outside
-e.g.
-John   lives in New   York  City  .
-B-PER  O     O  B-LOC I-LOC I-LOC O
-IOBES:
-- B = begin,
-- E = end,
-- S = singleton,
-- I = inside but not the first or the last,
-- O = outside
-e.g.
-John   lives in New   York  City  .
-S-PER  O     O  B-LOC I-LOC E-LOC O
-prefix: IOBES
-chunk_type: PER, LOC, etc.
-"""
 from __future__ import division, print_function, unicode_literals
-
-import sys
 from collections import defaultdict
 
 
@@ -95,7 +71,7 @@ def calc_metrics(tp, p, t, percent=True):
 
 def count_chunks(true_seqs, pred_seqs):
     """
-    true_seqs: a list of true tags
+    true_seqs: a list of true-tags
     pred_seqs: a list of predicted tags
     return:
     correct_chunks: a dict (counter),
@@ -157,7 +133,7 @@ def get_result(correct_chunks, true_chunks, pred_chunks,
                correct_counts, true_counts, verbose=True):
     """
     if verbose, print overall performance, as well as performance per chunk type;
-    otherwise, simply return overall prec, rec, f1 scores
+    otherwise, simply return overall precision, rec, f1 scores
     """
     # sum counts
     sum_correct_chunks = sum(correct_chunks.values())
@@ -173,8 +149,8 @@ def get_result(correct_chunks, true_chunks, pred_chunks,
     chunk_types = sorted(list(set(list(true_chunks) + list(pred_chunks))))
 
     # compute overall precision, recall and FB1 (default values are 0.0)
-    prec, rec, f1 = calc_metrics(sum_correct_chunks, sum_pred_chunks, sum_true_chunks)
-    res = (prec, rec, f1)
+    precision, rec, f1 = calc_metrics(sum_correct_chunks, sum_pred_chunks, sum_true_chunks)
+    res = (precision, rec, f1)
     if not verbose:
         return res
 
@@ -185,20 +161,17 @@ def get_result(correct_chunks, true_chunks, pred_chunks,
 
     print("accuracy: %6.2f%%; (non-O)" % (100 * nonO_correct_counts / nonO_true_counts))
     print("accuracy: %6.2f%%; " % (100 * sum_correct_counts / sum_true_counts), end='')
-    print("precision: %6.2f%%; recall: %6.2f%%; FB1: %6.2f" % (prec, rec, f1))
+    print("precision: %6.2f%%; recall: %6.2f%%; FB1: %6.2f" % (precision, rec, f1))
 
     # for each chunk type, compute precision, recall and FB1 (default values are 0.0)
     for t in chunk_types:
-        prec, rec, f1 = calc_metrics(correct_chunks[t], pred_chunks[t], true_chunks[t])
+        precision, rec, f1 = calc_metrics(correct_chunks[t], pred_chunks[t], true_chunks[t])
         print("%17s: " % t, end='')
         print("precision: %6.2f%%; recall: %6.2f%%; FB1: %6.2f" %
-              (prec, rec, f1), end='')
+              (precision, rec, f1), end='')
         print("  %d" % pred_chunks[t])
 
     return res
-    # you can generate LaTeX output for tables like in
-    # http://cnts.uia.ac.be/conll2003/ner/example.tex,
-    # but I'm not implementing this
 
 
 def evaluate(true_seqs, pred_seqs, verbose=True):
@@ -207,28 +180,3 @@ def evaluate(true_seqs, pred_seqs, verbose=True):
     result = get_result(correct_chunks, true_chunks, pred_chunks,
                         correct_counts, true_counts, verbose=verbose)
     return result
-
-
-def evaluate_conll_file(fileIterator):
-    true_seqs, pred_seqs = [], []
-
-    for line in fileIterator:
-        cols = line.strip().split()
-        # each non-empty line must contain >= 3 columns
-        if not cols:
-            true_seqs.append('O')
-            pred_seqs.append('O')
-        elif len(cols) < 3:
-            raise IOError("conlleval: too few columns in line %s\n" % line)
-        else:
-            # extract tags from last 2 columns
-            true_seqs.append(cols[-2])
-            pred_seqs.append(cols[-1])
-    return evaluate(true_seqs, pred_seqs)
-
-
-if __name__ == '__main__':
-    """
-    usage:     conlleval < file
-    """
-    evaluate_conll_file(sys.stdin)

@@ -1,10 +1,8 @@
-import torch
-
-from configuration import Configuration
-from Training.NER_model import NERClassifier
-from Parser.parsers import Parser
 from Parser.parser_utils import Splitting
+from Parser.parsers import Parser
+from Training.NER_model import NERClassifier
 from Training.training import train
+from configuration import Configuration
 
 if __name__ == "__main__":
 
@@ -13,7 +11,7 @@ if __name__ == "__main__":
     df_train, df_val, df_test = Splitting().holdout(e_handler.get_sentences())
 
     model = NERClassifier(conf.bert, e_handler.labels("num"))
-    model.load_state_dict(torch.load(conf.folder + "tmp/modelA2.pt"))
+    # model.load_state_dict(torch.load(conf.folder + "tmp/modelA2.pt"))
 
     if conf.cuda:
         model = model.to("cuda:0")

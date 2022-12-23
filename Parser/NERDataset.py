@@ -3,7 +3,6 @@ from torch import LongTensor, IntTensor, BoolTensor
 from torch.utils.data import Dataset
 from tqdm import tqdm
 from transformers import BertTokenizerFast
-
 from configuration import Configuration
 from Parser.parser_utils import EntityHandler, align_tags
 
@@ -19,6 +18,7 @@ class NerDataset(Dataset):
             for _, row in tqdm(dataset[["Sentences", "Labels_" + str(type_of_entity)]].iterrows(),
                                total=dataset.shape[0]):
 
+                # tokens = ["Hi","How","are","you"]
                 tokens, labels = row[0].split(), row[1].split()
 
                 token_text = tokenizer(tokens, is_split_into_words=True)
@@ -26,8 +26,9 @@ class NerDataset(Dataset):
 
                 input_ids = IntTensor(token_text["input_ids"])
                 att_mask = IntTensor(token_text["attention_mask"])
-                tag_mask = BoolTensor(tag_mask)
-                labels_ids = LongTensor([e_handler.label2id[tag] for tag in aligned_labels])
+                tag_mask = BoolTensor(tag_mask)  # using to correct classify the tags
+
+                labels_ids = LongTensor(e_handler.map_lab2id(aligned_labels))
 
                 if conf.cuda:
                     input_ids = input_ids.to("cuda:0")

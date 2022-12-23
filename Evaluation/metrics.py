@@ -1,17 +1,19 @@
 import torch
 from pandas import DataFrame
-from torch import Tensor, zeros, no_grad, masked_select
+from torch import Tensor, no_grad, masked_select, zeros
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-
-import configuration
-from Parser.parser_utils import EntityHandler
+from Evaluation.conlleval import evaluate
 from Parser.NERDataset import NerDataset
+from Parser.parser_utils import EntityHandler
 from Training.NER_model import NERClassifier
-from Training.training_utils import padding_batch
+from configuration import Configuration
 
 
 def scores(confusion: Tensor, all_metrics=False):
+    """
+    Given a Confusion matrix, returns a F1-score, if all_metrics if true then returns all metrics
+    """
     length = confusion.shape[0]
     iter_label = range(length)
 
@@ -45,30 +47,38 @@ def scores(confusion: Tensor, all_metrics=False):
         return f1.mean()
 
 
-def single_eval(model: NERClassifier, dataset: DataFrame, conf: configuration.Configuration,
-                handler: EntityHandler) -> DataFrame:
+def eval_model(model: NERClassifier, dataset: DataFrame, conf: Configuration,
+               handler: EntityHandler, result="conlleval"):
+
+    true_label, pred_label = [], []  # using for conlleval
+    max_labels = handler.labels("num")
+    confusion = zeros(size=(max_labels, max_labels))
+
     # evaluate the dataframe with a single model
-
-    ts = DataLoader(NerDataset(dataset, conf, handler), collate_fn=padding_batch)
-
-    n_labs = handler.labels("num")  # num of tags
-    # they represent a dictionary that map the ids(int) into entity (str)
-
-    # instantiate a confusion matrix
-    confusion = zeros(size=(n_labs, n_labs))
-
+    ts = DataLoader(NerDataset(dataset, conf, handler))
     with no_grad():  # Validation phase
         for inputs_ids, att_mask, tag_maks, labels in tqdm(ts):
-
             logits = model(inputs_ids, att_mask, None)
             logits = logits[0].squeeze(0).argmax(1)
-
             logits = masked_select(logits, tag_maks)
             labels = masked_select(labels, tag_maks)
+
+            # before mapping id -> labels
             for lbl, pre in zip(labels, logits):
                 confusion[lbl, pre] += 1
 
-    df_result = scores(confusion, all_metrics=True)
-    df_result.index = [handler.id2label[i] for i in range(0, n_labs)]
+            labels = handler.map_id2lab(labels, is_tensor=True)
+            logits = handler.map_id2lab(logits, is_tensor=True)
 
-    return df_result
+            true_label.extend(labels)
+            pred_label.extend(logits)
+
+    if result == "conlleval":
+        evaluate(true_label, pred_label)
+        return
+    elif result == "df":
+
+        df_result = scores(confusion, all_metrics=True)
+        df_result.index = handler.map_id2lab([*range(0, max_labels)])
+
+        return df_result

@@ -1,8 +1,7 @@
 from torch import IntTensor, BoolTensor, masked_select
 from transformers import BertTokenizerFast
-
 from Parser.parser_utils import EntityHandler
-from Training import NER_model
+from Training.NER_model import NERClassifier
 from configuration import Configuration
 
 
@@ -10,11 +9,15 @@ class Predictor:
     def __init__(self, conf: Configuration):
         self.conf = conf
         self.tokenizer = BertTokenizerFast.from_pretrained(conf.bert)
-
         self.models: dict = {}
 
     @staticmethod
     def prediction_mask(words_ids: list) -> list:
+        """
+        List of boolean values, True if the sub-token is the first
+        :param words_ids:
+        :return:
+        """
         mask = [False] * len(words_ids)
 
         pred = None
@@ -26,7 +29,7 @@ class Predictor:
 
     @staticmethod
     def unify_labels(labelsA: list, labelsB: list) -> list:
-        # creates a list of tags, if there are more than one tag to keep, it generates a list
+        # Creates a list of tags, if there are more than one tag to keep it generates a list
         unified = []
         for a, b in zip(labelsA, labelsB):
             if a == b or b == "O":
@@ -57,8 +60,9 @@ class Predictor:
         for (model, handler) in self.models.values():
             logits = model(input_ids, att_mask, None)
             logits = logits[0].squeeze(0).argmax(1)
-            logits = masked_select(logits, tag_mask)
-            results.append([handler.id2label[i.item()] for i in logits])
+            logits = masked_select(logits, tag_mask).tolist()
+
+            results.append(handler.map_id2lab(logits))
 
         results = self.unify_labels(results[0], results[1]) if len(results) == 2 else results
         return results

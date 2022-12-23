@@ -1,9 +1,7 @@
-import itertools
+from itertools import groupby
 from typing import Tuple
-
 import numpy as np
 from pandas import DataFrame
-
 from configuration import Configuration
 
 
@@ -11,14 +9,14 @@ def read_conll(path: str):
     """
     Generator of sentences from CoNLL files
     :param path: path of file
-    :return: (sentence string,sequence of pos tag,sequence of label,check condition)
+    :return: (sentence string, sequence of label)
     """
 
     def _is_divider(line: str) -> bool:
         return True if line.strip() == '' else False
 
     with open(path, encoding="utf-8") as f:
-        for is_divider, lines in itertools.groupby(f, _is_divider):
+        for is_divider, lines in groupby(f, _is_divider):
             if is_divider:
                 continue
             fields = [line.split() for line in lines if not line.startswith('-DOCSTART-')]
@@ -35,10 +33,21 @@ def read_conll(path: str):
 
 
 def align_tags(labels: list, word_ids: list) -> Tuple[list, list]:
+    """
+    This function aligns the labels associated to a sentence, after that the sentence
+    is broken is a word-pieces tokenization, it returns an aligned list and a tag mask.
+
+    The tag mask is a list of boolean, each value corresponding to a sub-token. The value
+    is true if the sub-token is the first of token else false.
+
+    If a token is split in more than one sub-token, the tag associated is repeated. The second
+    tag always start with "I-"
+    """
     aligned_labels = []
-    maks = [False] * len(word_ids)
+    mask = [False] * len(word_ids)
     prev_id = None
 
+    # in the word_ids the number is repeated is the corresponding token is split
     for idx, word_id in enumerate(word_ids):
 
         if word_id is None:
@@ -46,7 +55,7 @@ def align_tags(labels: list, word_ids: list) -> Tuple[list, list]:
 
         elif word_id != prev_id:
             aligned_labels.append(labels[word_id])
-            maks[idx] = True
+            mask[idx] = True
 
         elif word_id == prev_id:
             if labels[word_id][0] == "B":
@@ -55,12 +64,12 @@ def align_tags(labels: list, word_ids: list) -> Tuple[list, list]:
                 aligned_labels.append(labels[word_id])
 
         prev_id = word_id
-    return aligned_labels, maks
+    return aligned_labels, mask
 
 
 def buildDataset(type_entity: str, conf: Configuration):
     """
-    buildDataset function take as input the type of entity (es "a") and creates a dataframe
+    buildDataset function takes as input the type of entity (es "a") and creates a dataframe
     where there are the sentences and labels associated to mentioned type
     :param type_entity: name of group of entity
     :param conf: configuration class
@@ -101,6 +110,28 @@ class EntityHandler:
         # Give id returns a label : id --> label
         self.id2label: dict = {v: k for v, k in enumerate(sorted(set_entities))}
 
+    def map_lab2id(self, list_of_labels, is_tensor=False) -> list:
+        """
+        Mapping a list of labels into a list of label's id
+        """
+        result = []
+        for label in list_of_labels:
+            label = label.item() if is_tensor else label
+            result.append(self.label2id[label] if label in self.label2id else self.label2id["O"])
+
+        return result
+
+    def map_id2lab(self, list_of_ids, is_tensor=False) -> list:
+        """
+        Mapping a list of ids into a list of labels
+        """
+        result = []
+        for label_id in list_of_ids:
+            label_id = label_id.item() if is_tensor else label_id
+            result.append(self.id2label[label_id] if label_id in self.id2label else "O")
+
+        return result
+
     def get_sentences(self):
         return self.dt
 
@@ -125,7 +156,8 @@ class Splitting:
         """
         Dividing the final dataset base on holdout technique
         """
-        # Apply a subsampling to reduce the dimension of dataset
+        # Apply a subsampling to reduce the dimension of dataset, it also shuffles the dataset
+        # we fixed the random state for the determinism
         df = df.sample(frac=size, random_state=42)
 
         length = len(df)  # length of sub-sampled dataframe
