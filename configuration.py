@@ -26,9 +26,9 @@ class Configuration:
         # We can choose if train the model with different group of entity defined in the path dictionary
         self.type_of_entity = ["a"]
 
-        # self.folder = "/content/drive/MyDrive/NERforMedicalRecords/"
-        self.folder = "K:/Universita/[IA] Artificial Intelligence/[HLT] Human Language " \
-                      "Technologies/NERforMedicalRecords/"
+        self.folder = "/content/drive/MyDrive/NERforMedicalRecords/"
+        # self.folder = "K:/Universita/[IA] Artificial Intelligence/[HLT] Human Language " \
+        #              "Technologies/NERforMedicalRecords/"
 
         # The system recognize if there are some GPU available
         self.cuda = True if torch.cuda.is_available() else False
