@@ -41,6 +41,7 @@ class Predictor:
         return unified
 
     def add_model(self, group: str, model: NERClassifier, handler: EntityHandler):
+        model.eval()
         self.models[group] = (model, handler)
 
     def predict(self, string: str):

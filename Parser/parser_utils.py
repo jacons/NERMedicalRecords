@@ -67,10 +67,11 @@ def align_tags(labels: list, word_ids: list) -> Tuple[list, list]:
     return aligned_labels, mask
 
 
-def buildDataset(type_entity: str, conf: Configuration):
+def buildDataset(type_entity: str, conf: Configuration, verbose=True):
     """
     buildDataset function takes as input the type of entity (es "a") and creates a dataframe
     where there are the sentences and labels associated to mentioned type
+    :param verbose:
     :param type_entity: name of group of entity
     :param conf: configuration class
     :return: sentences and labels dataframe
@@ -92,8 +93,9 @@ def buildDataset(type_entity: str, conf: Configuration):
             list_of_labels.append(" ".join(labels))
             set_of_entity.update(labels)
 
-        print("|{:^41}|{:^20}|{:^20}|".format("Sentences and tags", len(sentences), len(set_of_entity)))
-        print("-" * 85)
+        if verbose:
+            print("|{:^41}|{:^20}|{:^20}|".format("Sentences and tags", len(sentences), len(set_of_entity)))
+            print("-" * 85)
 
     t = {"Sentences": sentences, "Labels_" + str(type_entity): list_of_labels}
     return DataFrame(t).drop_duplicates(), set_of_entity

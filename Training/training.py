@@ -5,8 +5,9 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.optim.sgd import SGD
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from Parser.NERDataset import NerDataset
+
 from Evaluation.metrics import scores
+from Parser.NERDataset import NerDataset
 from Training.training_utils import padding_batch, EarlyStopping, ModelVersion
 from configuration import Configuration
 
@@ -21,7 +22,6 @@ def train(model, e_handler, df_train: DataFrame, df_val: DataFrame, conf: Config
     print("\n--INFO--\tCreating Dataloader for Validation set")
     vl = DataLoader(NerDataset(df_val, conf, e_handler))
     # --------- DATASETS ---------
-
     epoch = 0
     tr_size, vl_size = len(tr), len(vl)
     total_epochs = conf.param["max_epoch"]

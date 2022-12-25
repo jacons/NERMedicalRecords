@@ -51,7 +51,8 @@ if __name__ == "__main__":
     """
     # ====== ENSEMBLE EVALUATION ======
 
-    handlers, unified_dt = EnsembleParser(conf)
+    # ====== ENSEMBLE PREDICTION ======
+    handlers, _ = EnsembleParser(conf)
 
     modelA = NERClassifier(conf.bert, handlers["a"].labels("num"))
     # modelA.load_state_dict(torch.load(conf.folder + "tmp/modelH1.pt"))
@@ -68,7 +69,7 @@ if __name__ == "__main__":
     predictor = Predictor(conf)
     predictor.add_model("a", modelA, handlers["a"])
     predictor.add_model("b", modelB, handlers["b"])
-    predictor.predict("Ciao come va")
+    # ====== ENSEMBLE PREDICTION ======
 
 # Epochs: 1  | Loss:  0.0344 | Val_Loss:  0.0260 | F1:  0.9143
 # Epochs: 2  | Loss:  0.0165 | Val_Loss:  0.0227 | F1:  0.9299

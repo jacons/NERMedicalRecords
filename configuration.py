@@ -26,9 +26,9 @@ class Configuration:
         # We can choose if train the model with different group of entity defined in the path dictionary
         self.type_of_entity = ["a", "b"]
 
-        self.folder = "/content/drive/MyDrive/NERforMedicalRecords/"
-        #self.folder = "K:/Universita/[IA] Artificial Intelligence/[HLT] Human Language " \
-        #              "Technologies/NERforMedicalRecords/"
+        #self.folder = "/content/drive/MyDrive/NERforMedicalRecords/"
+        self.folder = "K:/Universita/[IA] Artificial Intelligence/[HLT] Human Language " \
+                      "Technologies/NERforMedicalRecords/"
 
         # The system recognize if there are some GPU available
         self.cuda = True if torch.cuda.is_available() else False
@@ -53,7 +53,9 @@ class Configuration:
     def update_params(self, param: str, value: float):
         self.param[param] = value
 
-    def show_parameters(self, conf: list) -> None:
+    def show_parameters(self, conf=None) -> None:
+        if conf is None:
+            conf = []
 
         if "bert" in conf:
             print("{:<85}".format("Bert model"))
