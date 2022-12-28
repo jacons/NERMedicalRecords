@@ -6,14 +6,14 @@ from torch.optim.sgd import SGD
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
+from Usage import Configuration
+from Parsing.CustomDataset import NerDataset
 from Evaluation.metrics import scores
-from Parser.NERDataset import NerDataset
-from Training.training_utils import padding_batch, EarlyStopping, ModelVersion
-from configuration import Configuration
+from Parsing.parser_utils import EntityHandler
+from trainer_utils import padding_batch, EarlyStopping, ModelVersion
 
 
-def train(model, e_handler, df_train: DataFrame, df_val: DataFrame, conf: Configuration):
-
+def train(model, e_handler: EntityHandler, df_train: DataFrame, df_val: DataFrame, conf: Configuration):
     # --------- DATASETS ---------
     print("--INFO--\tCreating Dataloader for Training set")
     tr = DataLoader(NerDataset(df_train, conf, e_handler), collate_fn=padding_batch,
@@ -26,18 +26,17 @@ def train(model, e_handler, df_train: DataFrame, df_val: DataFrame, conf: Config
     tr_size, vl_size = len(tr), len(vl)
     total_epochs = conf.param["max_epoch"]
     stopping = conf.param["early_stopping"]  # "Patience in early stopping"
-    max_labels = e_handler.labels("num")
+    max_labels = len(e_handler.set_entities)
 
     # --------- Early stopping ---------
     es = EarlyStopping(total_epochs if stopping <= 0 else stopping)
 
     # --------- Optimizer ---------
     optimizer = SGD(model.parameters(), lr=conf.param["lr"], momentum=conf.param["momentum"],
-                    weight_decay=conf.param["weight_decay"], nesterov=conf.param["nesterov"])
+                    weight_decay=conf.param["weight_decay"], nesterov=True)
 
     # --------- Save only the best model (which have minimum validation loss) ---------
-    model_version = ModelVersion(folder=conf.folder,
-                                 name=conf.param["model_name"]) if conf.param["cache"] else None
+    model_version = ModelVersion(folder=conf.folder, name=conf.param["model_name"]) if conf.param["cache"] else None
 
     # --------- Scheduling the learning rate to improve the convergence ---------
     scheduler = ReduceLROnPlateau(optimizer, 'min', patience=3)

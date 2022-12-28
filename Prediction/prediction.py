@@ -1,8 +1,8 @@
 from torch import IntTensor, BoolTensor, masked_select
 from transformers import BertTokenizerFast
-from Parser.parser_utils import EntityHandler
-from Training.NER_model import NERClassifier
-from configuration import Configuration
+
+from Usage import Configuration
+from Training import NERClassifier
 
 
 class Predictor:
@@ -28,6 +28,18 @@ class Predictor:
         return mask
 
     @staticmethod
+    def map_id2lab(dictionary, list_of_ids, is_tensor=False) -> list:
+        """
+        Mapping a list of ids into a list of labels
+        """
+        result = []
+        for label_id in list_of_ids:
+            label_id = label_id.item() if is_tensor else label_id
+            result.append(dictionary[label_id] if label_id in dictionary else "O")
+
+        return result
+
+    @staticmethod
     def unify_labels(labelsA: list, labelsB: list) -> list:
         # Creates a list of tags, if there are more than one tag to keep it generates a list
         unified = []
@@ -39,12 +51,12 @@ class Predictor:
             elif b == "O":
                 unified.append(a)
             else:
-                unified.append(a+"/"+b)
+                unified.append(a + "/" + b)
         return unified
 
-    def add_model(self, group: str, model: NERClassifier, handler: EntityHandler):
+    def add_model(self, group: str, model: NERClassifier, dictionary: dict):
         model.eval()
-        self.models[group] = (model, handler)
+        self.models[group] = (model, dictionary)
 
     def predict(self, string: str) -> list:
 
@@ -60,12 +72,13 @@ class Predictor:
             tag_mask = tag_mask.to("cuda:0")
 
         results = []
-        for (model, handler) in self.models.values():
+        for (model, dictionary) in self.models.values():
             logits = model(input_ids, att_mask, None)
             logits = logits[0].squeeze(0).argmax(1)
             logits = masked_select(logits, tag_mask).tolist()
 
-            results.append([lbl[2:] if lbl != "O" else "O" for lbl in handler.map_id2lab(logits)])
+            results.append(
+                [lbl[2:] if lbl != "O" else "O" for lbl in self.map_id2lab(dictionary, logits)])
 
         results = self.unify_labels(results[0], results[1]) if len(results) == 2 else results[0]
         return results

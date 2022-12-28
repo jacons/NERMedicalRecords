@@ -1,6 +1,0 @@
-numpy
-pandas
-torch
-tqdm
-transformers
-flask

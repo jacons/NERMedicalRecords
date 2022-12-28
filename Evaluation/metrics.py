@@ -1,15 +1,13 @@
 import torch
 from pandas import DataFrame
-from torch import Tensor, no_grad, masked_select, zeros, IntTensor, BoolTensor, LongTensor
-from torch.utils.data import DataLoader
+from torch import Tensor, zeros, IntTensor, BoolTensor, LongTensor, masked_select
 from tqdm import tqdm
 from transformers import BertTokenizerFast
 
+from Usage import Configuration
 from Evaluation.conlleval import evaluate
-from Parser.NERDataset import NerDataset
-from Parser.parser_utils import EntityHandler, align_tags
-from Training.NER_model import NERClassifier
-from configuration import Configuration
+from Parsing.parser_utils import EntityHandler, align_tags
+from Training import NERClassifier
 
 
 def scores(confusion: Tensor, all_metrics=False):
@@ -51,17 +49,16 @@ def scores(confusion: Tensor, all_metrics=False):
 
 def eval_model(model: NERClassifier, dataset: DataFrame, conf: Configuration,
                handler: EntityHandler, result="conlleval"):
-
     model.eval()
     true_label, pred_label = [], []  # using for conlleval
-    max_labels = handler.labels("num")
+    max_labels = len(handler.set_entities)
     confusion = zeros(size=(max_labels, max_labels))
     tokenizer = BertTokenizerFast.from_pretrained(conf.bert)
 
-    for _, row in tqdm(dataset.iterrows(), total=dataset.shape[0]):
+    for row in tqdm(dataset.itertuples(), total=dataset.shape[0]):
 
         # tokens = ["Hi","How","are","you"]
-        tokens, labels = row[0].split(), row[1].split()
+        tokens, labels = row[1].split(), row[2].split()
 
         token_text = tokenizer(tokens, is_split_into_words=True)
         aligned_labels, tag_mask = align_tags(labels, token_text.word_ids())
