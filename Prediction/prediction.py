@@ -32,19 +32,21 @@ class Predictor:
         # Creates a list of tags, if there are more than one tag to keep it generates a list
         unified = []
         for a, b in zip(labelsA, labelsB):
-            if a == b or b == "O":
-                unified.append(a)
+            if a == b:
+                unified.append("" if a == "O" else a)
             elif a == "O":
                 unified.append(b)
+            elif b == "O":
+                unified.append(a)
             else:
-                unified.append([a, b])
+                unified.append(a+"/"+b)
         return unified
 
     def add_model(self, group: str, model: NERClassifier, handler: EntityHandler):
         model.eval()
         self.models[group] = (model, handler)
 
-    def predict(self, string: str):
+    def predict(self, string: str) -> list:
 
         token_text = self.tokenizer(string)
 
@@ -63,7 +65,7 @@ class Predictor:
             logits = logits[0].squeeze(0).argmax(1)
             logits = masked_select(logits, tag_mask).tolist()
 
-            results.append(handler.map_id2lab(logits))
+            results.append([lbl[2:] if lbl != "O" else "O" for lbl in handler.map_id2lab(logits)])
 
-        results = self.unify_labels(results[0], results[1]) if len(results) == 2 else results
+        results = self.unify_labels(results[0], results[1]) if len(results) == 2 else results[0]
         return results

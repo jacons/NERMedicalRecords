@@ -4,6 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://use.typekit.net/oov2wcw.css">
         <style type="text/css">
 
             .grid-container {
@@ -43,6 +44,11 @@
               border: 2px solid black;
               grid-area: area3;
             }
+            .text_result{
+                font-family: century-gothic, sans-serif;
+                font-weight: 400;
+                font-style: normal;
+            }
         </style>
     </head>
     <body>
@@ -54,7 +60,7 @@
         <center>
             <div class="grid-container">
               <div class="grid-item1">
-                <div class="main_container">
+                <div class="">
                     <form method="POST">
                       <div style="padding:10px">
                         <label class="form-label"><b>Sentence</b></label>
@@ -64,18 +70,17 @@
                     </form>
                 </div>
               </div>
-              <div class="grid-item3">
-                <div class="main_container">
-                    {% for (token,tag) in result %}
-                        {{ token }}({{ tag }})
-                    {% endfor %}
-                </div>
+              <div class="grid-item3 text_result">
+                  <br>
+                  {% for (token,tag) in result %}
+                  {{ token }} {% if tag %} <sub style="color:red"> ({{ tag }}) </sub> {% endif %}
+                  {% endfor %}
               </div>
               <div class="grid-item2">
                   <table class="entity_table" cellpadding=5>
                         <tr><th>Entities</th></tr>
                         <tr><td>Active Ingredient</td></tr>
-                        <tr><td>Body part</td></tr>
+                            <tr><td>Body part</td></tr>
                         <tr><td>Disease or Syndrome</td></tr>
                         <tr><td>Drug</td></tr>
                         <tr><td>Sign or Symptom</td></tr>

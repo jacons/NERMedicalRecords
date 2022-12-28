@@ -37,7 +37,7 @@ class ModelVersion:
         If it is the first epoch or the model reach the minimum validation loss, it saves the model
         otherwise it maintains the previous version.
         """
-        if (len(self.list_vl_loss) == 0) or (metric < min(self.list_vl_loss)):
+        if self.list_vl_loss or (metric < min(self.list_vl_loss)):
             save(model.state_dict(), self.folder + "tmp/" + self.model_name + ".pt")
             print("Saved")
         if not isnan(metric):
