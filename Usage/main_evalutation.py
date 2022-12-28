@@ -27,5 +27,5 @@ if conf.cuda:
     modelA = modelA.to("cuda:0")
     modelB = modelB.to("cuda:0")
 
-print(eval_model(modelA, df_test[["sentences", "labels_a"]], conf, handler_a))
-print(eval_model(modelB, df_test[["sentences", "labels_b"]], conf, handler_b))
+eval_model(modelA, df_test[["sentences", "labels_a"]], conf, handler_a)
+eval_model(modelB, df_test[["sentences", "labels_b"]], conf, handler_b)

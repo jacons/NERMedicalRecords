@@ -4,7 +4,7 @@ from torch.utils.data import Dataset
 from tqdm import tqdm
 from transformers import BertTokenizerFast
 
-from Usage import Configuration
+import Configuration
 from Parsing.parser_utils import EntityHandler, align_tags
 
 

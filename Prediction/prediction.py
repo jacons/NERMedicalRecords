@@ -1,7 +1,7 @@
 from torch import IntTensor, BoolTensor, masked_select
 from transformers import BertTokenizerFast
 
-from Usage import Configuration
+import Configuration
 from Training import NERClassifier
 
 

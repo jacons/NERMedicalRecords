@@ -4,7 +4,7 @@ from torch import Tensor, zeros, IntTensor, BoolTensor, LongTensor, masked_selec
 from tqdm import tqdm
 from transformers import BertTokenizerFast
 
-from Usage import Configuration
+import Configuration
 from Evaluation.conlleval import evaluate
 from Parsing.parser_utils import EntityHandler, align_tags
 from Training import NERClassifier
@@ -97,5 +97,5 @@ def eval_model(model: NERClassifier, dataset: DataFrame, conf: Configuration,
 
         df_result = scores(confusion, all_metrics=True)
         df_result.index = handler.map_id2lab([*range(0, max_labels)])
-
-        return df_result
+        print(df_result)
+        return

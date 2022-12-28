@@ -1,6 +1,6 @@
 import torch
 
-from Usage.Configuration import Configuration
+from Configuration import Configuration
 from Prediction.prediction import Predictor
 from Training.NERClassifier import NERClassifier
 

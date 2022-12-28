@@ -6,7 +6,7 @@ from torch.optim.sgd import SGD
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from Usage import Configuration
+import Configuration
 from Parsing.CustomDataset import NerDataset
 from Evaluation.metrics import scores
 from Parsing.parser_utils import EntityHandler
