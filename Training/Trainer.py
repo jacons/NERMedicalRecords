@@ -7,10 +7,10 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 import Configuration
-from Parsing.CustomDataset import NerDataset
 from Evaluation.metrics import scores
+from Parsing.CustomDataset import NerDataset
 from Parsing.parser_utils import EntityHandler
-from trainer_utils import padding_batch, EarlyStopping, ModelVersion
+from Training.trainer_utils import padding_batch, EarlyStopping, ModelVersion
 
 
 def train(model, e_handler: EntityHandler, df_train: DataFrame, df_val: DataFrame, conf: Configuration):
@@ -36,7 +36,7 @@ def train(model, e_handler: EntityHandler, df_train: DataFrame, df_val: DataFram
                     weight_decay=conf.param["weight_decay"], nesterov=True)
 
     # --------- Save only the best model (which have minimum validation loss) ---------
-    model_version = ModelVersion(folder=conf.folder, name=conf.param["model_name"]) if conf.param["cache"] else None
+    model_version = ModelVersion(folder=conf.folder, name=conf.model_name) if conf.save_model else None
 
     # --------- Scheduling the learning rate to improve the convergence ---------
     scheduler = ReduceLROnPlateau(optimizer, 'min', patience=3)

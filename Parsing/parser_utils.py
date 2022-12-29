@@ -1,5 +1,7 @@
+import argparse
+import random
 from itertools import groupby
-from typing import Tuple, Any
+from typing import Tuple
 
 import numpy as np
 import pandas as pd
@@ -162,3 +164,47 @@ def ensembleParser(path_file_a, path_file_b, verbose=True) -> tuple[tuple[Entity
         [handler_a.dt.rename(columns={"labels": "labels_a"}),
          handler_b.dt.rename(columns={"labels": "labels_b"})], axis=1)
     return (handler_a, handler_b), unified_datasets.loc[:, ~unified_datasets.columns.duplicated()].drop_duplicates()
+
+
+def to_conLL(df: DataFrame, file_name: str):
+    def random_chars(y):
+        dictionary = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+        return ''.join(random.choice(dictionary) for _ in range(y))
+
+    f = open(file_name + ".conll", "w", encoding="utf-8")
+    f.write("\n")
+
+    for row in df.itertuples():
+        f.write("# id " + random_chars(64) + " domain=it\n")
+
+        tokens, labels = row[1].split(), row[2].split()
+        if len(tokens) != len(labels):
+            print("Error")
+            return
+
+        for (token, lab) in zip(tokens, labels):
+            f.write(token + " _ _ " + lab + "\n")
+        f.write("\n\n")
+    f.close()
+
+
+def parse_args():
+    p = argparse.ArgumentParser(description='Model configuration.', add_help=False)
+
+    p.add_argument('--datasets', type=str, nargs='+', help='Path to the datasets', default=None)
+    p.add_argument('--models', type=str, nargs='+', help='Models in the same order of datasets', default=None)
+
+    p.add_argument('--model_name', type=str, help='Name of trained model', default=None)
+    p.add_argument('--path_model', type=str, help='Directory to save the model', default=".")
+
+    p.add_argument('--bert', type=str, help='Huggingface model', default="dbmdz/bert-base-italian-xxl-cased")
+
+    p.add_argument('--lr', type=float, help='Learning rate', default=0.010)
+    p.add_argument('--momentum', type=float, help='Momentum', default=0.9)
+    p.add_argument('--weight_decay', type=float, help='Weight decay', default=0.0002)
+    p.add_argument('--batch_size', type=int, help='Batch size', default=2)
+    p.add_argument('--max_epoch', type=int, help='Max number of epochs', default=20)
+    p.add_argument('--early_stopping', type=float, help='Patience in early stopping', default=3)
+    p.add_argument('--save_model', type=int, help='1 to save the model', default=1)
+
+    return p.parse_known_args()

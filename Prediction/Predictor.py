@@ -67,9 +67,9 @@ class Predictor:
         tag_mask = BoolTensor(self.prediction_mask(token_text.word_ids()))
 
         if self.conf.cuda:
-            input_ids = input_ids.to("cuda:0")
-            att_mask = att_mask.to("cuda:0")
-            tag_mask = tag_mask.to("cuda:0")
+            input_ids = input_ids.to(self.conf.gpu)
+            att_mask = att_mask.to(self.conf.gpu)
+            tag_mask = tag_mask.to(self.conf.gpu)
 
         results = []
         for (model, dictionary) in self.models.values():

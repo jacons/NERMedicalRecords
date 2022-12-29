@@ -1,4 +1,6 @@
+import os
 from math import inf, isnan
+
 from torch import save
 from torch.nn.utils.rnn import pad_sequence
 
@@ -7,6 +9,7 @@ class EarlyStopping:
     """
     The early stopping it used to avoid the over-fitting.
     """
+
     def __init__(self, patience: int):
         self.patience: int = patience
         self.curr_pat: int = patience + 1
@@ -27,18 +30,22 @@ class ModelVersion:
     """
     ModelVersion at each epoch choose if it is better save the model base on validation loss
     """
+
     def __init__(self, folder: str, name: str):
         self.folder = folder
         self.model_name = name
         self.list_vl_loss: list = []
+
+        if not os.path.exists(folder + "/saved_models"):
+            os.makedirs(folder + "/saved_models")
 
     def update(self, model, metric: float):
         """
         If it is the first epoch or the model reach the minimum validation loss, it saves the model
         otherwise it maintains the previous version.
         """
-        if self.list_vl_loss or (metric < min(self.list_vl_loss)):
-            save(model.state_dict(), self.folder + "tmp/" + self.model_name + ".pt")
+        if len(self.list_vl_loss) == 0 or (metric < min(self.list_vl_loss)):
+            save(model.state_dict(), self.folder + "saved_models/" + self.model_name + ".pt")
             print("Saved")
         if not isnan(metric):
             self.list_vl_loss.append(metric)

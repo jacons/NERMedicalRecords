@@ -6,25 +6,27 @@ class Configuration:
     Class used to store all parameters and configuration for the execution
     """
 
-    def __init__(self):
+    def __init__(self, p):
 
         # Hyperparameters
         self.param: dict = {
-            "lr": 0.008,
-            "momentum": 0.8,
-            "weight_decay": 0.0002,
-            "batch_size": 2,
-            "model_name": "modelA2",
-            "max_epoch": 1,
-            "early_stopping": 3,
-            "nesterov": True,
-            "cache": False
+            "lr": p.lr,
+            "momentum": p.momentum,
+            "weight_decay": p.weight_decay,
+            "batch_size": p.batch_size,
+            "max_epoch": p.max_epoch,
+            "early_stopping": p.early_stopping,
         }
+
+        self.save_model = True if p.save_model == 1 else False
+        self.bert = p.bert  # Bert model as baseline
+
+        self.model_name = p.model_name
+        self.folder = p.path_model  # Directory to save the model
 
         # The system recognize if there are some GPU available
         self.cuda = True if torch.cuda.is_available() else False
-        # Constants
-        self.bert = "dbmdz/bert-base-italian-xxl-cased"  # Bert model as baseline
+        self.gpu = "cuda:0"
 
     def update_params(self, param: str, value: float):
         self.param[param] = value

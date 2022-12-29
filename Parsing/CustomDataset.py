@@ -31,10 +31,10 @@ class NerDataset(Dataset):
             labels_ids = LongTensor(e_handler.map_lab2id(aligned_labels))
 
             if conf.cuda:
-                input_ids = input_ids.to("cuda:0")
-                att_mask = att_mask.to("cuda:0")
-                tag_mask = tag_mask.to("cuda:0")
-                labels_ids = labels_ids.to("cuda:0")
+                input_ids = input_ids.to(conf.gpu)
+                att_mask = att_mask.to(conf.gpu)
+                tag_mask = tag_mask.to(conf.gpu)
+                labels_ids = labels_ids.to(conf.gpu)
 
             self.list_of_tokens.append(input_ids)
             self.list_of_att_masks.append(att_mask)

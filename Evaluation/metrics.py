@@ -70,10 +70,10 @@ def eval_model(model: NERClassifier, dataset: DataFrame, conf: Configuration,
         labels_ids = LongTensor(handler.map_lab2id(aligned_labels))
 
         if conf.cuda:
-            input_ids = input_ids.to("cuda:0").unsqueeze(0)
-            att_mask = att_mask.to("cuda:0").unsqueeze(0)
-            tag_mask = tag_mask.to("cuda:0")
-            labels_ids = labels_ids.to("cuda:0")
+            input_ids = input_ids.to(conf.gpu).unsqueeze(0)
+            att_mask = att_mask.to(conf.gpu).unsqueeze(0)
+            tag_mask = tag_mask.to(conf.gpu)
+            labels_ids = labels_ids.to(conf.gpu)
 
         logits = model(input_ids, att_mask, None)
         logits = logits[0].squeeze(0).argmax(1)
