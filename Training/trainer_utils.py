@@ -45,7 +45,7 @@ class ModelVersion:
         otherwise it maintains the previous version.
         """
         if len(self.list_vl_loss) == 0 or (metric < min(self.list_vl_loss)):
-            save(model.state_dict(), self.folder + "saved_models/" + self.model_name + ".pt")
+            save(model.state_dict(), self.folder + "/saved_models/" + self.model_name + ".pt")
             print("Saved")
         if not isnan(metric):
             self.list_vl_loss.append(metric)
