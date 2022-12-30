@@ -26,4 +26,6 @@ if __name__ == '__main__':
 
     train(model, handler, df_train, df_val, conf)
 
-    #  C:\ProgramData\Anaconda3\envs\deeplearning\python.exe train_model.py --model_name prova.pt --max_epoch 1 --datasets .\Source\dataset.a.conll
+    """
+    C:\ProgramData\Anaconda3\envs\deeplearning\python.exe train_model.py --model_name prova.pt --max_epoch 1 --datasets .\Source\dataset.a.conll
+    """

@@ -1,7 +1,6 @@
 import argparse
 import random
 from itertools import groupby
-from typing import Tuple
 
 import numpy as np
 import pandas as pd
@@ -94,7 +93,7 @@ def read_conll(path: str):
             yield tokens, entities
 
 
-def align_tags(labels: list, word_ids: list) -> Tuple[list, list]:
+def align_tags(labels: list, word_ids: list):
     """
     This function aligns the labels associated to a sentence, after that the sentence
     is broken is a word-pieces tokenization, it returns an aligned list and a tag mask.
@@ -156,7 +155,7 @@ def buildDataset(path_file: str, verbose=True) -> EntityHandler:
     return EntityHandler(DataFrame(t).drop_duplicates(), set_entities)
 
 
-def ensembleParser(path_file_a, path_file_b, verbose=True) -> tuple[tuple[EntityHandler, EntityHandler], DataFrame]:
+def ensembleParser(path_file_a, path_file_b, verbose=True):
     handler_a = buildDataset(path_file_a, verbose)
     handler_b = buildDataset(path_file_b, verbose)
 

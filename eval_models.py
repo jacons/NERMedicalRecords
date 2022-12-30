@@ -40,5 +40,6 @@ if __name__ == '__main__':
     # model_a = "saved_models/model.a.pt"
     # model_b = "saved_models/model.b.pt"
 
-    #  C:\ProgramData\Anaconda3\envs\deeplearning\python.exe eval_models.py --models saved_models/model.a.pt saved_models/model.b.pt --datasets Source/dataset.a.conll Source/dataset.b.conll
-
+    """
+    C:\ProgramData\Anaconda3\envs\deeplearning\python.exe eval_models.py --models saved_models/model.a.pt saved_models/model.b.pt --datasets Source/dataset.a.conll Source/dataset.b.conll
+    """
