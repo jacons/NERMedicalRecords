@@ -47,7 +47,7 @@ def train(model, e_handler: EntityHandler, df_train: DataFrame, df_val: DataFram
         loss_train, loss_val = 0, 0
 
         # ========== Training Phase ==========
-        for inputs_ids, att_mask, _, labels in tqdm(tr):
+        for inputs_ids, att_mask, _, labels in tqdm(tr, mininterval=60):
             optimizer.zero_grad(set_to_none=True)
 
             loss, _ = model(inputs_ids, att_mask, labels)
@@ -60,7 +60,7 @@ def train(model, e_handler: EntityHandler, df_train: DataFrame, df_val: DataFram
         # ========== Validation Phase ==========
         confusion = zeros(size=(max_labels, max_labels))
         with no_grad():  # Validation phase
-            for inputs_ids, att_mask, tag_maks, labels in tqdm(vl):
+            for inputs_ids, att_mask, tag_maks, labels in tqdm(vl, mininterval=60):
 
                 loss, logits = model(inputs_ids, att_mask, labels)
                 loss_val += loss.item()
