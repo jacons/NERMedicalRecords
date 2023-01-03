@@ -129,10 +129,6 @@ def align_tags(labels: list, word_ids: list):
 
 
 def buildDataset(path_file: str, verbose=True) -> EntityHandler:
-    """
-    buildDataset function takes as input the type of entity (es "a") and creates a dataframe
-    where there are the sentences and labels associated to mentioned type
-    """
     sentences, list_of_labels = [], []
     set_entities = set()  # set of unique entity found (incrementally updated)
 

@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
     handler = buildDataset(args.datasets[0], verbose=True)
     df_train, df_val, df_test = Splitting().holdout(handler.dt)
-    model = NERClassifier(conf.bert, len(handler.set_entities),frozen=False)
+    model = NERClassifier(conf.bert, len(handler.set_entities), frozen=False)
     # model.load_state_dict(torch.load(conf.folder + "tmp/modelA2.pt"))
 
     if conf.cuda:

@@ -17,10 +17,10 @@ if __name__ == '__main__':
 
     models = args.models
 
-    modelA = NERClassifier(conf.bert, 9)
+    modelA = NERClassifier(conf.bert, 9, frozen=False)
     modelA.load_state_dict(torch.load(models[0]))
 
-    modelB = NERClassifier(conf.bert, 5)
+    modelB = NERClassifier(conf.bert, 5, frozen=False)
     modelB.load_state_dict(torch.load(models[1]))
 
     if conf.cuda:

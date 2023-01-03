@@ -15,10 +15,10 @@ conf.show_parameters(["bert"])
 
 models = ["saved_models/model.a.pt", "saved_models/model.b.pt"]
 
-modelA = NERClassifier(conf.bert, 9)
+modelA = NERClassifier(conf.bert, 9, frozen=False)
 modelA.load_state_dict(torch.load(models[0], map_location=torch.device('cpu')))
 
-modelB = NERClassifier(conf.bert, 5)
+modelB = NERClassifier(conf.bert, 5, frozen=False)
 modelB.load_state_dict(torch.load(models[1], map_location=torch.device('cpu')))
 
 if conf.cuda:

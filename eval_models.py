@@ -21,10 +21,10 @@ if __name__ == '__main__':
     (handler_a, handler_b), unified_dt = ensembleParser(paths[0], paths[1])
     _, _, df_test = Splitting().holdout(unified_dt)
 
-    modelA = NERClassifier(conf.bert, 9)
+    modelA = NERClassifier(conf.bert, 9, frozen=False)
     modelA.load_state_dict(torch.load(models[0]))
 
-    modelB = NERClassifier(conf.bert, 5)
+    modelB = NERClassifier(conf.bert, 5, frozen=False)
     modelB.load_state_dict(torch.load(models[1]))
 
     if conf.cuda:
@@ -41,5 +41,5 @@ if __name__ == '__main__':
     # model_b = "saved_models/model.b.pt"
 
     """
-    C:\ProgramData\Anaconda3\envs\deeplearning\python.exe eval_models.py --models saved_models/model.a.pt saved_models/model.b.pt --datasets Source/dataset.a.conll Source/dataset.b.conll
+    C:\ProgramData\Anaconda3\envs\deeplearning\python.exe eval_models.py --models D:/saved_models/model_a_full_0001.pt D:/saved_models/model_b_full_0008.pt --datasets Source/dataset.a.conll Source/dataset.b.conll
     """
