@@ -8,6 +8,10 @@ from pandas import DataFrame
 
 
 class EntityHandler:
+    """
+    EntityHandler is class used to keep the associations between labels and ids
+    """
+
     def __init__(self, dt: DataFrame, set_entities: set):
         self.dt = dt  # dataframe of sentences
         self.set_entities = set_entities  # set of all entity detected
@@ -40,30 +44,29 @@ class EntityHandler:
         return result
 
 
-class Splitting:
-    def __init__(self):
-        # ========== PARAMETERS ==========
-        self.tr_size: float = 0.8  # Training set dimensions
-        self.vl_size: float = 0.1  # Validation set dimensions
-        self.ts_size: float = 0.1  # Test set dimensions
-        # ========== PARAMETERS ==========
+def holdout(df: DataFrame, size: float = 1, verbose=True) -> DataFrame:
+    """
+    Dividing the dataset based on holdout technique
+    """
+    # ========== PARAMETERS ==========
+    tr_size: float = 0.8  # Training set dimensions
+    vl_size: float = 0.1  # Validation set dimensions
+    ts_size: float = 0.1  # Test set dimensions
+    # ========== PARAMETERS ==========
 
-    def holdout(self, df: DataFrame, size: float = 1) -> DataFrame:
-        """
-        Dividing the final dataset base on holdout technique
-        """
-        # Apply a subsampling to reduce the dimension of dataset, it also shuffles the dataset
-        # we fixed the random state for the determinism
-        df = df.sample(frac=size, random_state=42)
+    # Apply a subsampling to reduce the dimension of dataset, it also shuffles the dataset
+    # we fixed the random state for the determinism
+    df = df.sample(frac=size, random_state=42)
 
-        length = len(df)  # length of sub-sampled dataframe
-        tr = int(self.tr_size * length)  # Number of row for the training set
-        vl = int(self.vl_size * length)
-        ts = int(self.ts_size * length)
+    length = len(df)  # length of sub-sampled dataframe
+    tr = int(tr_size * length)  # Number of rows for the training set
+    vl = int(vl_size * length)  # validation
+    ts = int(ts_size * length)  # test
 
+    if verbose:
         print("|{:^27}|{:^27}|{:^27}|".format("TR: " + str(tr), "VL: " + str(vl),
                                               "TS: " + str(ts)) + "\n" + "-" * 85)
-        return np.split(df, [tr, int((self.tr_size + self.vl_size) * length)])
+    return np.split(df, [tr, int((tr_size + vl_size) * length)])
 
 
 def read_conll(path: str):
@@ -95,20 +98,21 @@ def read_conll(path: str):
 
 def align_tags(labels: list, word_ids: list):
     """
-    This function aligns the labels associated to a sentence, after that the sentence
-    is broken is a word-pieces tokenization, it returns an aligned list and a tag mask.
+    This function aligns the labels associated with a sentence and returns an "aligned" list and a "tag mask".
 
-    The tag mask is a list of boolean, each value corresponding to a sub-token. The value
-    is true if the sub-token is the first of token else false.
+    "aligned" list: represents a list of labels that are aligned with the word-pieces of the sentence,
+                    if a token is split in more than one sub-word, the tag associated is repeated.
+                    The second tag (of the sequence of sub-words) always start with "I-".
 
-    If a token is split in more than one sub-token, the tag associated is repeated. The second
-    tag always start with "I-"
+    "tag mask":     represents a list of boolean, where each value corresponding to a sub-token. The boolean
+                    is true if the sub-token is the first one (of sub-words) else false.
+
+    *WordPiece is a sub-word segmentation algorithm
     """
     aligned_labels = []
     mask = [False] * len(word_ids)
     prev_id = None
 
-    # in the word_ids the number is repeated is the corresponding token is split
     for idx, word_id in enumerate(word_ids):
 
         if word_id is None:
@@ -129,6 +133,10 @@ def align_tags(labels: list, word_ids: list):
 
 
 def buildDataset(path_file: str, verbose=True) -> EntityHandler:
+    """
+    Build the dataframe of sentences from a path of file
+    The dataframe is composed by two columns "sentences" and "labels"
+    """
     sentences, list_of_labels = [], []
     set_entities = set()  # set of unique entity found (incrementally updated)
 
@@ -138,7 +146,7 @@ def buildDataset(path_file: str, verbose=True) -> EntityHandler:
 
         sentences.append(" ".join(tokens))
         list_of_labels.append(" ".join(labels))
-        set_entities.update(labels)
+        set_entities.update(labels)  # to keep track the entity found
 
     if verbose:
         print("Building sentences and tags\n" + "-" * 85)
@@ -152,16 +160,30 @@ def buildDataset(path_file: str, verbose=True) -> EntityHandler:
 
 
 def ensembleParser(path_file_a, path_file_b, verbose=True):
+    """
+    ensembleParser is used to group in one single dataframe the both to dataset A and B.
+
+    The function returns: two handler (A & B) and a unified dataframe. The df is composed by 3 columns
+    "sentences", "labels_a", "labels_b"
+
+    """
     handler_a = buildDataset(path_file_a, verbose)
     handler_b = buildDataset(path_file_b, verbose)
 
     unified_datasets = pd.concat(
         [handler_a.dt.rename(columns={"labels": "labels_a"}),
          handler_b.dt.rename(columns={"labels": "labels_b"})], axis=1)
-    return (handler_a, handler_b), unified_datasets.loc[:, ~unified_datasets.columns.duplicated()].drop_duplicates()
+
+    unified_datasets = unified_datasets.loc[:, ~unified_datasets.columns.duplicated()].drop_duplicates()
+
+    return (handler_a, handler_b), unified_datasets
 
 
 def to_conLL(df: DataFrame, file_name: str):
+    """
+    util function used to create from sentences' dataframe a file in conll format
+    (compatibility with MultiCoNER data sources)
+    """
     def random_chars(y):
         dictionary = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
         return ''.join(random.choice(dictionary) for _ in range(y))

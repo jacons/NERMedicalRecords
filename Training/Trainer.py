@@ -22,6 +22,7 @@ def train(model, e_handler: EntityHandler, df_train: DataFrame, df_val: DataFram
     print("\n--INFO--\tCreating Dataloader for Validation set")
     vl = DataLoader(NerDataset(df_val, conf, e_handler))
     # --------- DATASETS ---------
+
     epoch = 0
     tr_size, vl_size = len(tr), len(vl)
     total_epochs = conf.param["max_epoch"]
@@ -39,14 +40,17 @@ def train(model, e_handler: EntityHandler, df_train: DataFrame, df_val: DataFram
     model_version = ModelVersion(folder=conf.folder, name=conf.model_name) if conf.save_model else None
 
     # --------- Scheduling the learning rate to improve the convergence ---------
-    scheduler = ReduceLROnPlateau(optimizer, 'min', patience=3)
+    scheduler = ReduceLROnPlateau(optimizer, 'min', patience=2)
 
     print("\n--INFO--\tThe Training is started")
+    model.train()
     while (epoch < total_epochs) and (not es.earlyStop):
 
         loss_train, loss_val = 0, 0
 
         # ========== Training Phase ==========
+
+        #  There inputs are created in "NerDataset" class
         for inputs_ids, att_mask, _, labels in tqdm(tr, mininterval=60):
             optimizer.zero_grad(set_to_none=True)
 

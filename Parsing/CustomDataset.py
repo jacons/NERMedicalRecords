@@ -9,7 +9,7 @@ from Parsing.parser_utils import EntityHandler, align_tags
 
 
 class NerDataset(Dataset):
-    # We try to preprocess the data as much as possible.
+    # We try to preprocess the data as much as possible before the training.
     def __init__(self, dataset: DataFrame, conf: Configuration, e_handler: EntityHandler):
 
         self.list_of_tokens, self.list_of_att_masks, self.list_of_tag_masks, self.list_of_labels = [], [], [], []
@@ -24,10 +24,12 @@ class NerDataset(Dataset):
             token_text = tokenizer(tokens, is_split_into_words=True)
             aligned_labels, tag_mask = align_tags(labels, token_text.word_ids())
 
+            # prepare a model's inputs
             input_ids = IntTensor(token_text["input_ids"])
             att_mask = IntTensor(token_text["attention_mask"])
             tag_mask = BoolTensor(tag_mask)  # using to correct classify the tags
 
+            # mapping the list of labels e.g. ["I-DRUG","O"] to list of id of labels e.g. ["4","7"]
             labels_ids = LongTensor(e_handler.map_lab2id(aligned_labels))
 
             if conf.cuda:

@@ -1,5 +1,5 @@
 from Configuration import Configuration
-from Parsing.parser_utils import parse_args, buildDataset, Splitting
+from Parsing.parser_utils import parse_args, buildDataset, holdout
 from Training.NERClassifier import NERClassifier
 from Training.Trainer import train
 
@@ -17,7 +17,7 @@ if __name__ == '__main__':
         raise Exception("Define a model name!")
 
     handler = buildDataset(args.datasets[0], verbose=True)
-    df_train, df_val, df_test = Splitting().holdout(handler.dt)
+    df_train, df_val, df_test = holdout(handler.dt)
     model = NERClassifier(conf.bert, len(handler.set_entities), frozen=False)
     # model.load_state_dict(torch.load(conf.folder + "tmp/modelA2.pt"))
 

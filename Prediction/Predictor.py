@@ -14,7 +14,7 @@ class Predictor:
     @staticmethod
     def prediction_mask(words_ids: list) -> list:
         """
-        List of boolean values, True if the sub-token is the first
+        List of boolean values, True if the sub-word is the first one
         :param words_ids:
         :return:
         """
@@ -41,7 +41,10 @@ class Predictor:
 
     @staticmethod
     def unify_labels(labelsA: list, labelsB: list) -> list:
-        # Creates a list of tags, if there are more than one tag to keep it generates a list
+        """
+        Creates a unified list of tags, if there are more than one tag to keep it generates a sequence
+        delimited by "/"
+        """
         unified = []
         for a, b in zip(labelsA, labelsB):
             if a == b:
