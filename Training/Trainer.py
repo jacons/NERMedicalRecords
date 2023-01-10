@@ -17,10 +17,10 @@ def train(model, e_handler: EntityHandler, df_train: DataFrame, df_val: DataFram
     # --------- DATASETS ---------
     print("--INFO--\tCreating Dataloader for Training set")
     tr = DataLoader(NerDataset(df_train, conf, e_handler), collate_fn=padding_batch,
-                    batch_size=conf.param["batch_size"], shuffle=True, num_workers=4)
+                    batch_size=conf.param["batch_size"], shuffle=True)
 
     print("\n--INFO--\tCreating Dataloader for Validation set")
-    vl = DataLoader(NerDataset(df_val, conf, e_handler), num_workers=4)
+    vl = DataLoader(NerDataset(df_val, conf, e_handler))
     # --------- DATASETS ---------
 
     epoch = 0
