@@ -64,7 +64,7 @@
                     <form method="POST">
                       <div style="padding:10px">
                         <label class="form-label"><b>Sentence</b></label>
-                        <input type="text" style="padding:8px;" class="form-control" name="Sentence" value="">
+                        <textarea type="text" style="padding:8px;" class="form-control" name="Sentence" value=""></textarea>
                       </div>
                       <button type="submit" class="btn" style="background-color:#AD8E70"><b>Entity extraction</b></button>
                     </form>
@@ -72,8 +72,9 @@
               </div>
               <div class="grid-item3 text_result">
                   <br>
-                  {% for (token,tag) in result %}
-                  {{ token }} {% if tag %} <sub style="color:red"> ({{ tag }}) </sub> {% endif %}
+                  {% for (token, tag, mask) in result %}
+                  {% if tag %}<i><b>{{ token }}</b></i>{% else %}{{ token }}{% endif %}
+                  {% if tag and mask %}<sub style="color:red"> ({{ tag }})</sub> {% endif %}
                   {% endfor %}
               </div>
               <div class="grid-item2">

@@ -41,7 +41,13 @@ def create():
     if request.method == 'POST':
         sentence = request.form['Sentence']
         tag_pred = predictor.predict(sentence)
-        result_ = [*zip(sentence.split(), tag_pred)]
+
+        mask = [False] * len(tag_pred)
+        for idx in range(len(tag_pred)-1):
+            if tag_pred[idx] != tag_pred[idx+1]:
+                mask[idx] = True
+
+        result_ = [*zip(sentence.split(), tag_pred, mask)]
     else:
         result_ = []
     return render_template('main.html', result=result_)
