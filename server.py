@@ -44,7 +44,7 @@ def create():
 
         mask = [False] * len(tag_pred)
         for idx in range(len(tag_pred)-1):
-            if tag_pred[idx] != tag_pred[idx+1]:
+            if tag_pred[idx] != tag_pred[idx+1] and tag_pred[idx] != "":
                 mask[idx] = True
 
         result_ = [*zip(sentence.split(), tag_pred, mask)]
