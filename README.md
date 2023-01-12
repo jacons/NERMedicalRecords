@@ -31,15 +31,15 @@ p.add_argument('--bert', type=str,
 p.add_argument('--save_model', type=int,
     help='set 1 if you want save the model otherwise set 0', default=1)
 
-p.add_argument('--lr', type=float, help='Learning rate', default=0.010)
+p.add_argument('--lr', type=float, help='Learning rate', default=0.004)
     
 p.add_argument('--momentum', type=float, help='Momentum', default=0.9)
     
 p.add_argument('--weight_decay', type=float, help='Weight decay', default=0.0002)
     
-p.add_argument('--batch_size', type=int, help='Batch size', default=2)
+p.add_argument('--batch_size', type=int, help='Batch size', default=16)
     
-p.add_argument('--max_epoch', type=int, help='Max number of epochs', default=20)
+p.add_argument('--max_epoch', type=int, help='Max number of epochs', default=15)
     
 p.add_argument('--early_stopping', type=float, help='Patience in early stopping', default=3)
 ``` 
