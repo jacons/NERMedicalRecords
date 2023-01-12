@@ -25,7 +25,3 @@ if __name__ == '__main__':
         model = model.to(conf.gpu)
 
     train(model, handler, df_train, df_val, conf)
-
-    """
-    C:\ProgramData\Anaconda3\envs\deeplearning\python.exe train_model.py --model_name prova --max_epoch 1 --datasets .\Source\dataset.a.conll
-    """

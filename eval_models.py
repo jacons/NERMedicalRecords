@@ -33,13 +33,3 @@ if __name__ == '__main__':
 
     eval_model(modelA, df_test[["sentences", "labels_a"]], conf, handler_a)
     eval_model(modelB, df_test[["sentences", "labels_b"]], conf, handler_b)
-
-    # path_a = "Source/dataset.a.conll"
-    # path_b = "Source/dataset.b.conll"
-
-    # model_a = "saved_models/model.a.pt"
-    # model_b = "saved_models/model.b.pt"
-
-    """
-    C:\ProgramData\Anaconda3\envs\deeplearning\python.exe eval_models.py --models D:/saved_models/model_a_full_0001.pt D:/saved_models/model_b_full_0008.pt --datasets Source/dataset.a.conll Source/dataset.b.conll
-    """

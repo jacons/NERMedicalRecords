@@ -53,8 +53,3 @@ def create():
             list_of_result.clear()
 
     return render_template('main.html', list_of_result=list_of_result)
-
-
-"""
-    set FLASK_APP=server.py;$env:FLASK_APP = "server.py";flask run
-"""
