@@ -35,22 +35,24 @@ id2lab_group_b = {0: 'B-BODY', 1: 'B-TREA', 2: 'I-BODY', 3: 'I-TREA', 4: 'O'}
 predictor.add_model("a", modelA, id2lab_group_a)
 predictor.add_model("b", modelB, id2lab_group_b)
 
+list_of_result = []
+
 
 @app.route('/', methods=('GET', 'POST'))
 def create():
     if request.method == 'POST':
+
         sentence = request.form['Sentence']
-        tag_pred = predictor.predict(sentence)
 
-        mask = [False] * len(tag_pred)
-        for idx in range(len(tag_pred)-1):
-            if tag_pred[idx] != tag_pred[idx+1] and tag_pred[idx] != "":
-                mask[idx] = True
+        if "predict" in request.form and sentence != "":
+            tag_pred, mask = predictor.predict(sentence)
+            result_ = [*zip(sentence.split(), tag_pred, mask)]
+            list_of_result.append(result_)
 
-        result_ = [*zip(sentence.split(), tag_pred, mask)]
-    else:
-        result_ = []
-    return render_template('main.html', result=result_)
+        elif "clear" in request.form:
+            list_of_result.clear()
+
+    return render_template('main.html', list_of_result=list_of_result)
 
 
 """

@@ -1,3 +1,5 @@
+from typing import Tuple
+
 from torch import IntTensor, BoolTensor, masked_select
 from transformers import BertTokenizerFast
 
@@ -61,7 +63,7 @@ class Predictor:
         model.eval()
         self.models[group] = (model, dictionary)
 
-    def predict(self, string: str) -> list:
+    def predict(self, string: str) -> Tuple[list, list]:
 
         token_text = self.tokenizer(string)
 
@@ -84,4 +86,13 @@ class Predictor:
                 [lbl[2:] if lbl != "O" else "O" for lbl in self.map_id2lab(dictionary, logits)])
 
         results = self.unify_labels(results[0], results[1]) if len(results) == 2 else results[0]
-        return results
+
+        # Mask is used to show only a once the entity. if true on the last word in a group of words
+        # where it was detected as entity
+        mask = [False] * len(results)
+        for idx in range(len(results) - 1):
+            if results[idx] != results[idx + 1] and results[idx] != "":
+                mask[idx] = True
+        mask[-1] = True if results[-1] != "" else False
+
+        return results, mask

@@ -140,9 +140,9 @@ def buildDataset(path_file: str, verbose=True) -> EntityHandler:
     sentences, list_of_labels = [], []
     set_entities = set()  # set of unique entity found (incrementally updated)
 
-    for field in read_conll(path_file):  # generator
+    for fields in read_conll(path_file):  # generator
 
-        tokens, labels = field[0], field[1]
+        tokens, labels = fields[0], fields[1]
 
         sentences.append(" ".join(tokens))
         list_of_labels.append(" ".join(labels))
@@ -206,15 +206,26 @@ def to_conLL(df: DataFrame, file_name: str):
 
 
 def parse_args():
-    p = argparse.ArgumentParser(description='Model configuration.', add_help=False)
+    p = argparse.ArgumentParser(description='Model configuration.', add_help=True)
 
-    p.add_argument('--datasets', type=str, nargs='+', help='Path to the datasets', default=None)
-    p.add_argument('--models', type=str, nargs='+', help='Models in the same order of datasets', default=None)
+    p.add_argument('--datasets', type=str, nargs='+',
+                   help='Dataset used for training, it will split in training, validation and test', default=None)
 
-    p.add_argument('--model_name', type=str, help='Name of trained model', default=None)
-    p.add_argument('--path_model', type=str, help='Directory to save the model', default=".")
+    p.add_argument('--models', type=str, nargs='+',
+                   help='Model trained ready to evaluate or use, if list, the order must follow the same of datasets',
+                   default=None)
 
-    p.add_argument('--bert', type=str, help='Huggingface model', default="dbmdz/bert-base-italian-xxl-cased")
+    p.add_argument('--model_name', type=str,
+                   help='Name to give to a trained model', default=None)
+
+    p.add_argument('--path_model', type=str,
+                   help='Directory to save the model', default=".")
+
+    p.add_argument('--bert', type=str,
+                   help='Bert model provided by Huggingface', default="dbmdz/bert-base-italian-xxl-cased")
+
+    p.add_argument('--save_model', type=int,
+                   help='set 1 if you want save the model otherwise set 0', default=1)
 
     p.add_argument('--lr', type=float, help='Learning rate', default=0.010)
     p.add_argument('--momentum', type=float, help='Momentum', default=0.9)
@@ -222,6 +233,6 @@ def parse_args():
     p.add_argument('--batch_size', type=int, help='Batch size', default=2)
     p.add_argument('--max_epoch', type=int, help='Max number of epochs', default=20)
     p.add_argument('--early_stopping', type=float, help='Patience in early stopping', default=3)
-    p.add_argument('--save_model', type=int, help='1 to save the model', default=1)
+
 
     return p.parse_known_args()

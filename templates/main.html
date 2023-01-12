@@ -64,17 +64,22 @@
                     <form method="POST">
                       <div style="padding:10px">
                         <label class="form-label"><b>Sentence</b></label>
-                        <textarea type="text" style="padding:8px;" class="form-control" name="Sentence" value=""></textarea>
+                        <textarea style="padding:8px;" class="form-control" name="Sentence"></textarea>
                       </div>
-                      <button type="submit" class="btn" style="background-color:#AD8E70"><b>Entity extraction</b></button>
+                      <button type="submit" class="btn"  name="predict" style="background-color:#AD8E70"><b>Entity extraction</b></button>
+                      <button type="submit" class="btn"  name="clear" style="background-color:#AD8E70"><b>Clear</b></button>
                     </form>
                 </div>
               </div>
               <div class="grid-item3 text_result">
                   <br>
-                  {% for (token, tag, mask) in result %}
-                  {% if tag %}<i><b>{{ token }}</b></i>{% else %}{{ token }}{% endif %}
-                  {% if tag and mask %}<sub style="color:red"> ({{ tag }})</sub> {% endif %}
+                  {% for result in list_of_result %}
+                        {% for (token, tag, mask) in result %}
+                            {% if tag %}<i><b>{{ token }}</b></i>{% else %}{{ token }}{% endif %}
+                            {% if tag and mask %}<sub style="color:red"> ({{ tag }})</sub> {% endif %}
+                        {% endfor %}
+                        <br>
+                        <hr style="width:100%">
                   {% endfor %}
               </div>
               <div class="grid-item2">

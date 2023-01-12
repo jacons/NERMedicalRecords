@@ -18,8 +18,8 @@ if __name__ == '__main__':
 
     handler = buildDataset(args.datasets[0], verbose=True)
     df_train, df_val, df_test = holdout(handler.dt)
+
     model = NERClassifier(conf.bert, len(handler.set_entities), frozen=False)
-    # model.load_state_dict(torch.load(conf.folder + "tmp/modelA2.pt"))
 
     if conf.cuda:
         model = model.to(conf.gpu)
@@ -27,5 +27,5 @@ if __name__ == '__main__':
     train(model, handler, df_train, df_val, conf)
 
     """
-    C:\ProgramData\Anaconda3\envs\deeplearning\python.exe train_model.py --model_name prova.pt --max_epoch 1 --datasets .\Source\dataset.a.conll
+    C:\ProgramData\Anaconda3\envs\deeplearning\python.exe train_model.py --model_name prova --max_epoch 1 --datasets .\Source\dataset.a.conll
     """
