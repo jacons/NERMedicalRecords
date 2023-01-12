@@ -1,6 +1,6 @@
 > University of Pisa, UNIPI \
 > Academic year 2022/23 \
-> Authors: [Iommi Andrea]() \
+> Authors: [Iommi Andrea](https://github.com/jacons) \
 > January, 2022
 > 
 # Named entity recognition for Clinical records.
@@ -48,7 +48,7 @@ p.add_argument('--early_stopping', type=float, help='Patience in early stopping'
 
 ###### Train model
 ```
-python train_model.py --model_name model_a --lr 0.0004 --max_epoch 12 --batch_size 16 --datasets dataset.a.conll
+python train_model.py --model_name modelA --lr 0.0004 --max_epoch 12 --batch_size 16 --datasets dataset.a.conll
 ```
 
 ###### Evaluate the trained model
