@@ -31,6 +31,9 @@ p.add_argument('--bert', type=str,
 p.add_argument('--save_model', type=int,
     help='set 1 if you want save the model otherwise set 0', default=1)
 
+p.add_argument('--type_eval', type=str,
+    help='define the type of evaluation: conlleval or df', default="conlleval")
+    
 p.add_argument('--lr', type=float, help='Learning rate', default=0.004)
     
 p.add_argument('--momentum', type=float, help='Momentum', default=0.9)
@@ -53,7 +56,7 @@ python train_model.py --model_name modelA --lr 0.0004 --max_epoch 12 --batch_siz
 
 ###### Evaluate the trained model
 ```
-python eval_models.py --models modelA.pt modelB.pt --datasets dataset.a.conll dataset.b.conll
+python eval_models.py --models modelA.pt modelB.pt --datasets dataset.a.conll dataset.b.conll --type_eval conlleval
 ```
 
 

@@ -184,6 +184,7 @@ def to_conLL(df: DataFrame, file_name: str):
     util function used to create from sentences' dataframe a file in conll format
     (compatibility with MultiCoNER data sources)
     """
+
     def random_chars(y):
         dictionary = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
         return ''.join(random.choice(dictionary) for _ in range(y))
@@ -226,6 +227,9 @@ def parse_args():
 
     p.add_argument('--save_model', type=int,
                    help='set 1 if you want save the model otherwise set 0', default=1)
+
+    p.add_argument('--type_eval', type=str,
+                   help='define the type of evaluation: conlleval or df', default="conlleval")
 
     p.add_argument('--lr', type=float, help='Learning rate', default=0.010)
 

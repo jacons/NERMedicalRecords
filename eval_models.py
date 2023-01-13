@@ -31,5 +31,5 @@ if __name__ == '__main__':
         modelA = modelA.to(conf.gpu)
         modelB = modelB.to(conf.gpu)
 
-    eval_model(modelA, df_test[["sentences", "labels_a"]], conf, handler_a)
-    eval_model(modelB, df_test[["sentences", "labels_b"]], conf, handler_b)
+    eval_model(modelA, df_test[["sentences", "labels_a"]], conf, handler_a, result=args.type_eval)
+    eval_model(modelB, df_test[["sentences", "labels_b"]], conf, handler_b, result=args.type_eval)
