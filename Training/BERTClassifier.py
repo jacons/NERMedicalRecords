@@ -2,7 +2,7 @@ from torch.nn import Module
 from transformers import BertForTokenClassification
 
 
-class NERClassifier(Module):
+class BERTClassifier(Module):
     def __init__(self, bert: str, tot_labels: int, frozen: bool = True):
         """
         Bert model
@@ -10,7 +10,7 @@ class NERClassifier(Module):
         :param tot_labels: Total number of label for the classification
         :param frozen: True to freeze the deep parameters
         """
-        super(NERClassifier, self).__init__()
+        super(BERTClassifier, self).__init__()
         self.bert = BertForTokenClassification.from_pretrained(bert, num_labels=tot_labels)
         if frozen:
             for name, param in self.bert.bert.named_parameters():

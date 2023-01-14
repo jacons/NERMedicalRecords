@@ -7,7 +7,6 @@ from transformers import BertTokenizerFast
 import Configuration
 from Evaluation.conlleval import evaluate
 from Parsing.parser_utils import EntityHandler, align_tags
-from Training import NERClassifier
 
 
 def scores(confusion: Tensor, all_metrics=False):

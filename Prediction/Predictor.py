@@ -4,7 +4,6 @@ from torch import IntTensor, BoolTensor, masked_select
 from transformers import BertTokenizerFast
 
 import Configuration
-from Training import NERClassifier
 
 
 class Predictor:

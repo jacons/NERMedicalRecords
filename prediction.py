@@ -3,7 +3,7 @@ import torch
 from Configuration import Configuration
 from Parsing.parser_utils import parse_args
 from Prediction.Predictor import Predictor
-from Training.NERClassifier import NERClassifier
+from Training.BERTClassifier import BERTClassifier
 
 if __name__ == '__main__':
 
@@ -17,10 +17,10 @@ if __name__ == '__main__':
 
     models = args.models
 
-    modelA = NERClassifier(conf.bert, 9, frozen=False)
+    modelA = BERTClassifier(conf.bert, 9, frozen=False)
     modelA.load_state_dict(torch.load(models[0]))
 
-    modelB = NERClassifier(conf.bert, 5, frozen=False)
+    modelB = BERTClassifier(conf.bert, 5, frozen=False)
     modelB.load_state_dict(torch.load(models[1]))
 
     if conf.cuda:
