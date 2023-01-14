@@ -108,3 +108,4 @@ class BERTGRUClassifier(Module):
     def forward(self, input_id, mask, label):
         output = self.bert(input_ids=input_id, attention_mask=mask, labels=label, return_dict=False)
         return output
+
