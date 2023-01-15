@@ -4,7 +4,7 @@ from flask import Flask, render_template, request
 from Configuration import Configuration
 from Parsing.parser_utils import parse_args
 from Prediction.Predictor import Predictor
-from Training.BERTClassifier import BERTClassifier
+from Training.NERClassifier import NERClassifier
 
 app = Flask(__name__)
 
@@ -15,10 +15,10 @@ conf.show_parameters(["bert"])
 
 models = ["saved_models/model.a.pt", "saved_models/model.b.pt"]
 
-modelA = BERTClassifier(conf.bert, 9, frozen=False)
+modelA = NERClassifier(conf.bert, 9, frozen=False)
 modelA.load_state_dict(torch.load(models[0], map_location=torch.device('cpu')))
 
-modelB = BERTClassifier(conf.bert, 5, frozen=False)
+modelB = NERClassifier(conf.bert, 5, frozen=False)
 modelB.load_state_dict(torch.load(models[1], map_location=torch.device('cpu')))
 
 if conf.cuda:

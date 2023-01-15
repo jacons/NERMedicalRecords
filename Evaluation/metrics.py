@@ -46,7 +46,7 @@ def scores(confusion: Tensor, all_metrics=False):
         return f1.mean()
 
 
-def eval_model(model: NERClassifier, dataset: DataFrame, conf: Configuration,
+def eval_model(model, dataset: DataFrame, conf: Configuration,
                handler: EntityHandler, result="conlleval"):
     model.eval()
     true_label, pred_label = [], []  # using for conlleval

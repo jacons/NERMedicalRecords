@@ -231,7 +231,7 @@ def parse_args():
     p.add_argument('--type_eval', type=str,
                    help='define the type of evaluation: conlleval or df', default="conlleval")
 
-    p.add_argument('--lr', type=float, help='Learning rate', default=0.010)
+    p.add_argument('--lr', type=float, help='Learning rate', default=0.001)
 
     p.add_argument('--momentum', type=float, help='Momentum', default=0.9)
 

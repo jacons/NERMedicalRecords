@@ -58,7 +58,7 @@ class Predictor:
                 unified.append(a + "/" + b)
         return unified
 
-    def add_model(self, group: str, model: NERClassifier, dictionary: dict):
+    def add_model(self, group: str, model, dictionary: dict):
         model.eval()
         self.models[group] = (model, dictionary)
 

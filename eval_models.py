@@ -3,7 +3,7 @@ import torch
 from Configuration import Configuration
 from Evaluation.metrics import eval_model
 from Parsing.parser_utils import parse_args, ensembleParser, holdout
-from Training.BERTClassifier import BERTClassifier
+from Training.NERClassifier import NERClassifier
 
 if __name__ == '__main__':
 
@@ -21,10 +21,10 @@ if __name__ == '__main__':
     (handler_a, handler_b), unified_dt = ensembleParser(paths[0], paths[1])
     _, _, df_test = holdout(unified_dt)
 
-    modelA = BERTClassifier(conf.bert, 9, frozen=False)
+    modelA = NERClassifier(conf.bert, 9, frozen=False)
     modelA.load_state_dict(torch.load(models[0]))
 
-    modelB = BERTClassifier(conf.bert, 5, frozen=False)
+    modelB = NERClassifier(conf.bert, 5, frozen=False)
     modelB.load_state_dict(torch.load(models[1]))
 
     if conf.cuda:
