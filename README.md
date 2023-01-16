@@ -7,6 +7,9 @@
 
 As final project for Human Language Technologies (HLT) I developed a project that extracts knowledge from Italian medical records written by physician and provides a simple web interface to make prediction on sentences. I also compared the quality of project’s result with the  result of MultiCoNER competition.
 
+report : [NER_for_Medical_Records.pdf](https://github.com/jacons/NERMedicalRecords/files/10427990/NER_for_Medical_Records.pdf)
+
+
 ### Running the Code
 
 #### Arguments:
