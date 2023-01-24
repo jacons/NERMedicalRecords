@@ -1,4 +1,4 @@
-from typing import Optional, Union, Any
+from typing import Optional
 
 import torch
 from allennlp.modules import ConditionalRandomField
@@ -9,7 +9,7 @@ from torch.nn.functional import leaky_relu
 from transformers import BertPreTrainedModel, BertModel
 
 
-class BertCRFForTagging(BertPreTrainedModel):  # noqa
+class BertForNERTagging(BertPreTrainedModel):  # noqa
     _keys_to_ignore_on_load_unexpected = [r"pooler"]
 
     def __init__(self, config, entity_handler, use_gpu):
@@ -23,10 +23,10 @@ class BertCRFForTagging(BertPreTrainedModel):  # noqa
         self.dropout = nn.Dropout(classifier_dropout)
         self.classifier = nn.Linear(config.hidden_size, config.num_labels)
 
-        self.crf_layer = ConditionalRandomField(num_tags=config.num_labels,
+        self.crf_layer = ConditionalRandomField(num_tags=len(entity_handler.id2label),
                                                 constraints=allowed_transitions(constraint_type="BIO",
                                                                                 labels=entity_handler.id2label))
-        self.log_softMax = nn.LogSoftmax(dim=1)
+        self.log_softmax = nn.LogSoftmax(dim=1)
 
         # Initialize weights and apply final processing
         self.post_init()
@@ -43,8 +43,7 @@ class BertCRFForTagging(BertPreTrainedModel):  # noqa
             output_attentions: Optional[bool] = None,
             output_hidden_states: Optional[bool] = None,
             return_dict: Optional[bool] = None,
-    ) -> tuple[Union[float, Any], Any]:
-
+    ):
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
 
         outputs = self.bert(
@@ -63,9 +62,8 @@ class BertCRFForTagging(BertPreTrainedModel):  # noqa
         sequence_output = leaky_relu(sequence_output)
         sequence_output = self.dropout(sequence_output)
         token_scores = self.classifier(sequence_output)
-        token_scores = self.log_softMax(token_scores)
+        token_scores = self.log_softmax(token_scores)
 
-        loss = -self.crf_layer(token_scores, labels, attention_mask) / float(token_scores.shape[0])
         best_path = self.crf_layer.viterbi_tags(token_scores, attention_mask)
 
         if self.use_gpu:
@@ -73,23 +71,21 @@ class BertCRFForTagging(BertPreTrainedModel):  # noqa
         else:
             best_path = [LongTensor(item[0]) for item in best_path]
 
-        return loss, best_path
+        if labels is not None:
+            loss = -self.crf_layer(token_scores, labels, attention_mask) / float(token_scores.shape[0])
+            return loss, best_path
+
+        return best_path
 
 
 class NERCRFClassifier(Module):
-    def __init__(self, bert: str, tot_labels: int, entity_handler, use_gpu):
-        """
-        Bert model
-        :param bert: Name of bert used
-        :param tot_labels: Total number of label for the classification
-        """
+    def __init__(self, bert: str, num_labels: int, entity_handler, use_gpu: bool):
         super(NERCRFClassifier, self).__init__()
 
-        self.bert = BertCRFForTagging.from_pretrained(bert, num_labels=tot_labels, entity_handler=entity_handler,
+        self.bert = BertForNERTagging.from_pretrained(bert, num_labels=num_labels, entity_handler=entity_handler,
                                                       use_gpu=use_gpu)
         return
 
     def forward(self, input_id, mask, label):
         output = self.bert(input_ids=input_id, attention_mask=mask, labels=label, return_dict=False)
         return output
-  
