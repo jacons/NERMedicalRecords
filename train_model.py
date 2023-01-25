@@ -1,6 +1,6 @@
 from Configuration import Configuration
 from Parsing.parser_utils import parse_args, buildDataset, holdout
-from Training.NERCRFClassifier import NERCRFClassifier
+from Training.NERClassifier import NERClassifier
 from Training.Trainer import train
 
 if __name__ == '__main__':
@@ -19,7 +19,7 @@ if __name__ == '__main__':
     handler = buildDataset(args.datasets[0], verbose=True)
     df_train, df_val, df_test = holdout(handler.dt)
 
-    model = NERCRFClassifier(conf.bert, len(handler.set_entities), handler, conf.cuda)
+    model = NERClassifier(conf.bert, len(handler.set_entities), frozen=False)
 
     if conf.cuda:
         model = model.to(conf.gpu)
