@@ -68,7 +68,7 @@ def train(model, e_handler: EntityHandler, df_train: DataFrame, df_val: DataFram
 
                 loss, logits = model(inputs_ids, att_mask, labels)
                 loss_val += loss.item()
-                logits = logits[0]#.argmax(1)
+                # logits = logits[0].argmax(1)
 
                 logits = masked_select(logits, tag_maks)
                 labels = masked_select(labels, tag_maks)
