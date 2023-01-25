@@ -1,8 +1,8 @@
 from pandas import DataFrame
 from torch import no_grad, zeros, masked_select
 from torch.nn.utils import clip_grad_norm_
-from torch.optim import AdamW
 from torch.optim.lr_scheduler import ReduceLROnPlateau
+from torch.optim.sgd import SGD
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
@@ -33,7 +33,8 @@ def train(model, e_handler: EntityHandler, df_train: DataFrame, df_val: DataFram
     es = EarlyStopping(total_epochs if stopping <= 0 else stopping)
 
     # --------- Optimizer ---------
-    optimizer = AdamW(model.parameters(), lr=conf.param["lr"])
+    optimizer = SGD(model.parameters(), lr=conf.param["lr"], momentum=conf.param["momentum"],
+                    weight_decay=conf.param["weight_decay"], nesterov=True)
 
     # --------- Save only the best model (which have minimum validation loss) ---------
     model_version = ModelVersion(folder=conf.folder, name=conf.model_name) if conf.save_model else None
@@ -67,7 +68,7 @@ def train(model, e_handler: EntityHandler, df_train: DataFrame, df_val: DataFram
 
                 loss, logits = model(inputs_ids, att_mask, labels)
                 loss_val += loss.item()
-                logits = logits[0]  # .argmax(1)
+                logits = logits[0]#.argmax(1)
 
                 logits = masked_select(logits, tag_maks)
                 labels = masked_select(labels, tag_maks)
