@@ -26,7 +26,7 @@ class NERBertCRFClassification(BertPreTrainedModel):  # noqa
         self.linear_layer = nn.Sequential(
             nn.Dropout(classifier_dropout),
             nn.Linear(config.hidden_size, config.num_labels),
-            nn.Softmax(-1),
+            nn.LogSoftmax(-1),
         )
 
         self.crf_layer = ConditionalRandomField(num_tags=config.num_labels,
@@ -79,16 +79,16 @@ class NERBertCRFClassification(BertPreTrainedModel):  # noqa
 
 
 class NERCRFClassifier(Module):
-    def __init__(self, bert: str, tot_labels: int, handler):
+    def __init__(self, bert: str, handler: EntityHandler):
         """
         Bert model
         :param bert: Name of bert used
-        :param tot_labels: Total number of label for the classification
         :param frozen: True to freeze the deep parameters
         """
         super(NERCRFClassifier, self).__init__()
 
-        self.bert = NERBertCRFClassification.from_pretrained(bert, num_labels=tot_labels, handler=handler)
+        num_labels = len(handler.set_entities)
+        self.bert = NERBertCRFClassification.from_pretrained(bert, num_labels=num_labels, handler=handler)
 
         return
 

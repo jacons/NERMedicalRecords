@@ -19,7 +19,7 @@ if __name__ == '__main__':
     handler = buildDataset(args.datasets[0], verbose=True)
     df_train, df_val, df_test = holdout(handler.dt)
 
-    model = NERCRFClassifier(conf.bert, len(handler.set_entities), handler)
+    model = NERCRFClassifier(conf.bert, handler)
 
     if conf.cuda:
         model = model.to(conf.gpu)
