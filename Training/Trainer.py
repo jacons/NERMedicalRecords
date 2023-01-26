@@ -52,7 +52,7 @@ def train(model, e_handler: EntityHandler, df_train: DataFrame, df_val: DataFram
         # ========== Training Phase ==========
 
         #  There inputs are created in "NerDataset" class
-        for inputs_ids, att_mask, _, labels in tqdm(tr):
+        for inputs_ids, att_mask, _, labels in tqdm(tr, mininterval=60):
             optimizer.zero_grad(set_to_none=True)
 
             loss, _ = model(inputs_ids, att_mask, labels)
@@ -65,12 +65,12 @@ def train(model, e_handler: EntityHandler, df_train: DataFrame, df_val: DataFram
         # ========== Validation Phase ==========
         confusion = zeros(size=(max_labels, max_labels))
         with no_grad():  # Validation phase
-            for inputs_ids, att_mask, tag_maks, labels in tqdm(vl):
+            for inputs_ids, att_mask, tag_maks, labels in tqdm(vl, mininterval=60):
 
                 loss, logits = model(inputs_ids, att_mask, labels)
                 loss_val += loss.item()
 
-                path, loss = logits[0]
+                path, _ = logits[0]
                 path = torch.LongTensor(path).to("cuda:0")
 
                 logits = masked_select(path, tag_maks)

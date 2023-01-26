@@ -1,6 +1,5 @@
 from Configuration import Configuration
 from Parsing.parser_utils import parse_args, buildDataset, holdout
-from Training.NERClassifier import NERClassifier
 from Training.NERCRFClassifier import NERCRFClassifier
 from Training.Trainer import train
 

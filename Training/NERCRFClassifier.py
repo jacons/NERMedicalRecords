@@ -1,21 +1,16 @@
 from typing import Optional
 
 import torch
-from torch import nn
-from torch.nn import Module
-import torch.nn.functional as F
-
-from torch.nn import CrossEntropyLoss
-from transformers import BertPreTrainedModel, BertModel
-from transformers.modeling_outputs import TokenClassifierOutput
-
 from allennlp.modules import ConditionalRandomField
 from allennlp.modules.conditional_random_field import allowed_transitions
+from torch import nn
+from torch.nn import Module
+from transformers import BertPreTrainedModel, BertModel
 
 from Parsing.parser_utils import EntityHandler
 
 
-class CustomBert(BertPreTrainedModel):  # noqa
+class NERBertCRFClassification(BertPreTrainedModel):  # noqa
 
     _keys_to_ignore_on_load_unexpected = [r"pooler"]
 
@@ -23,12 +18,16 @@ class CustomBert(BertPreTrainedModel):  # noqa
         super().__init__(config)
         self.num_labels = config.num_labels
 
-        self.bert = BertModel(config, add_pooling_layer=False)
         classifier_dropout = (
             config.classifier_dropout if config.classifier_dropout is not None else config.hidden_dropout_prob
         )
-        self.dropout = nn.Dropout(classifier_dropout)
-        self.classifier = nn.Linear(config.hidden_size, config.num_labels)
+        self.bert = BertModel(config, add_pooling_layer=False)
+
+        self.linear_layer = nn.Sequential(
+            nn.Dropout(classifier_dropout),
+            nn.Linear(config.hidden_size, config.num_labels),
+            nn.Softmax(-1),
+        )
 
         self.crf_layer = ConditionalRandomField(num_tags=config.num_labels,
                                                 constraints=allowed_transitions(constraint_type="BIO",
@@ -66,9 +65,7 @@ class CustomBert(BertPreTrainedModel):  # noqa
 
         sequence_output = outputs[0]
 
-        sequence_output = self.dropout(sequence_output)
-        logits = self.classifier(sequence_output)
-        logits = F.log_softmax(logits, dim=-1)
+        logits = self.linear_layer(sequence_output)
 
         loss = None
         if labels is not None:
@@ -91,7 +88,7 @@ class NERCRFClassifier(Module):
         """
         super(NERCRFClassifier, self).__init__()
 
-        self.bert = CustomBert.from_pretrained(bert, num_labels=tot_labels, handler=handler)
+        self.bert = NERBertCRFClassification.from_pretrained(bert, num_labels=tot_labels, handler=handler)
 
         return
 
