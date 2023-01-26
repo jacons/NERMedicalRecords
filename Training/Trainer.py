@@ -1,3 +1,4 @@
+import torch
 from pandas import DataFrame
 from torch import no_grad, zeros, masked_select
 from torch.nn.utils import clip_grad_norm_
@@ -51,7 +52,7 @@ def train(model, e_handler: EntityHandler, df_train: DataFrame, df_val: DataFram
         # ========== Training Phase ==========
 
         #  There inputs are created in "NerDataset" class
-        for inputs_ids, att_mask, _, labels in tqdm(tr, mininterval=60):
+        for inputs_ids, att_mask, _, labels in tqdm(tr):
             optimizer.zero_grad(set_to_none=True)
 
             loss, _ = model(inputs_ids, att_mask, labels)
@@ -64,13 +65,15 @@ def train(model, e_handler: EntityHandler, df_train: DataFrame, df_val: DataFram
         # ========== Validation Phase ==========
         confusion = zeros(size=(max_labels, max_labels))
         with no_grad():  # Validation phase
-            for inputs_ids, att_mask, tag_maks, labels in tqdm(vl, mininterval=60):
+            for inputs_ids, att_mask, tag_maks, labels in tqdm(vl):
 
                 loss, logits = model(inputs_ids, att_mask, labels)
                 loss_val += loss.item()
-                logits = logits[0].argmax(1)
 
-                logits = masked_select(logits, tag_maks)
+                path, loss = logits[0]
+                path = torch.LongTensor(path).to("cuda:0")
+
+                logits = masked_select(path, tag_maks)
                 labels = masked_select(labels, tag_maks)
                 for lbl, pre in zip(labels, logits):
                     confusion[lbl, pre] += 1
