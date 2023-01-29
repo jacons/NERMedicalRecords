@@ -3,7 +3,7 @@ import torch
 from Configuration import Configuration
 from Evaluation.metrics import eval_model
 from Parsing.parser_utils import parse_args, ensembleParser, holdout
-from Training.NERClassifier import NERClassifier
+from Training.NERCRFClassifier import NERCRFClassifier
 
 if __name__ == '__main__':
 
@@ -21,10 +21,10 @@ if __name__ == '__main__':
     (handler_a, handler_b), unified_dt = ensembleParser(paths[0], paths[1])
     _, _, df_test = holdout(unified_dt)
 
-    modelA = NERClassifier(conf.bert, 9, frozen=False)
+    modelA = NERCRFClassifier(conf.bert, handler_a)
     modelA.load_state_dict(torch.load(models[0]))
 
-    modelB = NERClassifier(conf.bert, 5, frozen=False)
+    modelB = NERCRFClassifier(conf.bert, handler_b)
     modelB.load_state_dict(torch.load(models[1]))
 
     if conf.cuda:

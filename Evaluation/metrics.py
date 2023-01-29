@@ -54,7 +54,7 @@ def eval_model(model, dataset: DataFrame, conf: Configuration,
     confusion = zeros(size=(max_labels, max_labels))  # Confusion matrix
     tokenizer = BertTokenizerFast.from_pretrained(conf.bert)
 
-    for row in tqdm(dataset.itertuples(), total=dataset.shape[0], mininterval=30):
+    for row in tqdm(dataset.itertuples(), total=dataset.shape[0]):
 
         # tokens = ["Hi","How","are","you"], labels = ["O","I-TREAT" ...]
         tokens, labels = row[1].split(), row[2].split()
@@ -78,8 +78,11 @@ def eval_model(model, dataset: DataFrame, conf: Configuration,
 
         # Perform the prediction
         logits = model(input_ids, att_mask, None)
-        logits = logits[0].squeeze(0).argmax(1)
-        logits = masked_select(logits, tag_mask)
+
+        path, _ = logits[0][0]
+        path = torch.LongTensor(path).to("cuda:0")
+
+        logits = masked_select(path, tag_mask)
         labels = masked_select(labels_ids, tag_mask)
 
         # before mapping id -> labels , we have to build a confusion matrix
