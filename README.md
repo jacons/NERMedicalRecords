@@ -61,7 +61,7 @@ python train_model.py --model_name modelA --lr 0.0004 --max_epoch 12 --batch_siz
 
 ###### Evaluate the trained model
 ```
-python eval_models.py --models modelA.pt modelB.pt --datasets dataset.a.conll dataset.b.conll --type_eval conlleval
+python eval_models.py --models modelA.pt modelB.pt --datasets dataset.a.conll dataset.b.conll --eval conlleval
 ```
 
 

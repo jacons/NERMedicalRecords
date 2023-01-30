@@ -22,6 +22,7 @@ class NERBertCRFClassification(BertPreTrainedModel):  # noqa
         self.bert = BertModel(config, add_pooling_layer=False)
 
         self.linear_layer = nn.Sequential(
+            nn.LeakyReLU(),
             nn.Dropout(classifier_dropout),
             nn.Linear(config.hidden_size, config.num_labels),
             nn.LogSoftmax(-1),
