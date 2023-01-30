@@ -1,6 +1,6 @@
 import torch
 from pandas import DataFrame
-from torch import Tensor, zeros, IntTensor, BoolTensor, LongTensor, masked_select
+from torch import Tensor, zeros, IntTensor, BoolTensor, LongTensor, masked_select, nn
 from tqdm import tqdm
 from transformers import BertTokenizerFast
 
@@ -11,15 +11,15 @@ from Parsing.parser_utils import EntityHandler, align_tags
 
 def scores(confusion: Tensor, all_metrics=False):
     """
-    Given a Confusion matrix, returns an F1-score, if all_metrics is false, then returns only F1-score
+    Given a Confusion matrix, returns an F1-score, if all_metrics is false, then returns only a mean of F1-score
     """
     length = confusion.shape[0]
     iter_label = range(length)
 
-    accuracy: Tensor = torch.zeros(length)
-    precision: Tensor = torch.zeros(length)
-    recall: Tensor = torch.zeros(length)
-    f1: Tensor = torch.zeros(length)
+    accuracy: Tensor = zeros(length)
+    precision: Tensor = zeros(length)
+    recall: Tensor = zeros(length)
+    f1: Tensor = zeros(length)
 
     for i in iter_label:
         fn = torch.sum(confusion[i, :i]) + torch.sum(confusion[i, i + 1:])  # false negative
@@ -46,7 +46,7 @@ def scores(confusion: Tensor, all_metrics=False):
         return f1.mean()
 
 
-def eval_model(model, dataset: DataFrame, conf: Configuration,
+def eval_model(model: nn.Module, dataset: DataFrame, conf: Configuration,
                handler: EntityHandler, result="conlleval"):
     model.eval()
     true_label, pred_label = [], []  # using for conlleval
@@ -54,7 +54,7 @@ def eval_model(model, dataset: DataFrame, conf: Configuration,
     confusion = zeros(size=(max_labels, max_labels))  # Confusion matrix
     tokenizer = BertTokenizerFast.from_pretrained(conf.bert)
 
-    for row in tqdm(dataset.itertuples(), total=dataset.shape[0]):
+    for row in tqdm(dataset.itertuples(), total=dataset.shape[0], desc="Evaluating", mininterval=conf.refresh_rate):
 
         # tokens = ["Hi","How","are","you"], labels = ["O","I-TREAT" ...]
         tokens, labels = row[1].split(), row[2].split()
@@ -77,10 +77,11 @@ def eval_model(model, dataset: DataFrame, conf: Configuration,
             labels_ids = labels_ids.to(conf.gpu)
 
         # Perform the prediction
-        logits = model(input_ids, att_mask, None)
+        path, _ = model(input_ids, att_mask, None)[0][0]  # path is a list of int
+        path = LongTensor(path)
 
-        path, _ = logits[0][0]
-        path = torch.LongTensor(path).to("cuda:0")
+        if conf.cuda:
+            path = path.to(conf.gpu)
 
         logits = masked_select(path, tag_mask)
         labels = masked_select(labels_ids, tag_mask)

@@ -7,14 +7,12 @@ from torch import nn
 from torch.nn import Module
 from transformers import BertPreTrainedModel, BertModel
 
-from Parsing.parser_utils import EntityHandler
-
 
 class NERBertCRFClassification(BertPreTrainedModel):  # noqa
 
     _keys_to_ignore_on_load_unexpected = [r"pooler"]
 
-    def __init__(self, config, handler: EntityHandler):
+    def __init__(self, config, id2label: dict):
         super().__init__(config)
         self.num_labels = config.num_labels
 
@@ -24,7 +22,6 @@ class NERBertCRFClassification(BertPreTrainedModel):  # noqa
         self.bert = BertModel(config, add_pooling_layer=False)
 
         self.linear_layer = nn.Sequential(
-            nn.LeakyReLU(),
             nn.Dropout(classifier_dropout),
             nn.Linear(config.hidden_size, config.num_labels),
             nn.LogSoftmax(-1),
@@ -32,7 +29,7 @@ class NERBertCRFClassification(BertPreTrainedModel):  # noqa
 
         self.crf_layer = ConditionalRandomField(num_tags=config.num_labels,
                                                 constraints=allowed_transitions(constraint_type="BIO",
-                                                                                labels=handler.id2label))
+                                                                                labels=id2label))
 
         # Initialize weights and apply final processing
         self.post_init()
@@ -80,7 +77,7 @@ class NERBertCRFClassification(BertPreTrainedModel):  # noqa
 
 
 class NERCRFClassifier(Module):
-    def __init__(self, bert: str, handler: EntityHandler):
+    def __init__(self, bert: str, id2label: dict):
         """
         Bert model
         :param bert: Name of bert used
@@ -88,8 +85,8 @@ class NERCRFClassifier(Module):
         """
         super(NERCRFClassifier, self).__init__()
 
-        num_labels = len(handler.set_entities)
-        self.bert = NERBertCRFClassification.from_pretrained(bert, num_labels=num_labels, handler=handler)
+        num_labels = len(id2label)
+        self.bert = NERBertCRFClassification.from_pretrained(bert, num_labels=num_labels, id2label=id2label)
 
         return
 

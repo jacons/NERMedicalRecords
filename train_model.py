@@ -17,9 +17,9 @@ if __name__ == '__main__':
         raise Exception("Define a model name!")
 
     handler = buildDataset(args.datasets[0], verbose=True)
-    df_train, df_val, df_test = holdout(handler.dt)
+    df_train, df_val, _ = holdout(handler.dt)
 
-    model = NERCRFClassifier(conf.bert, handler)
+    model = NERCRFClassifier(conf.bert, handler.id2label)
 
     if conf.cuda:
         model = model.to(conf.gpu)

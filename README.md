@@ -7,7 +7,7 @@
 
 As final project for Human Language Technologies (HLT) I developed a project that extracts knowledge from Italian medical records written by physician and provides a simple web interface to make prediction on sentences. I also compared the quality of project’s result with the  result of MultiCoNER competition. Both models uses BERT + CRF .
 
-#### *Report outdated further improvment have been applyed*
+#### *Report outdated further improvement have been applied*
 
 report : [NER_for_Medical_Records.pdf](https://github.com/jacons/NERMedicalRecords/files/10427990/NER_for_Medical_Records.pdf)
 
@@ -33,10 +33,10 @@ p.add_argument('--path_model', type=str,
 p.add_argument('--bert', type=str,
     help='Bert model provided by Huggingface', default="dbmdz/bert-base-italian-xxl-cased")
 
-p.add_argument('--save_model', type=int,
+p.add_argument('--save', type=int,
     help='set 1 if you want save the model otherwise set 0', default=1)
 
-p.add_argument('--type_eval', type=str,
+p.add_argument('--eval', type=str,
     help='define the type of evaluation: conlleval or df', default="conlleval")
     
 p.add_argument('--lr', type=float, help='Learning rate', default=0.004)
@@ -49,7 +49,7 @@ p.add_argument('--batch_size', type=int, help='Batch size', default=16)
     
 p.add_argument('--max_epoch', type=int, help='Max number of epochs', default=15)
     
-p.add_argument('--early_stopping', type=float, help='Patience in early stopping', default=3)
+p.add_argument('--patience', type=float, help='Patience in early stopping', default=3)
 ``` 
 
 #### Running 

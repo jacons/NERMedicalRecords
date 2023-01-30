@@ -21,10 +21,10 @@ if __name__ == '__main__':
     (handler_a, handler_b), unified_dt = ensembleParser(paths[0], paths[1])
     _, _, df_test = holdout(unified_dt)
 
-    modelA = NERCRFClassifier(conf.bert, handler_a)
+    modelA = NERCRFClassifier(conf.bert, handler_a.id2label)
     modelA.load_state_dict(torch.load(models[0]))
 
-    modelB = NERCRFClassifier(conf.bert, handler_b)
+    modelB = NERCRFClassifier(conf.bert, handler_b.id2label)
     modelB.load_state_dict(torch.load(models[1]))
 
     if conf.cuda:

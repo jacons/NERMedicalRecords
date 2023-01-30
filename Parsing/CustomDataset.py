@@ -16,7 +16,8 @@ class NerDataset(Dataset):
 
         tokenizer = BertTokenizerFast.from_pretrained(conf.bert)
 
-        for row in tqdm(dataset.itertuples(), total=dataset.shape[0], mininterval=60):
+        for row in tqdm(dataset.itertuples(), total=dataset.shape[0], desc="Building dataset",
+                        mininterval=conf.refresh_rate):
 
             # tokens = ["Hi","How","are","you"]
             tokens, labels = row[1].split(), row[2].split()

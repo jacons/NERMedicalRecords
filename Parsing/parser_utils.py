@@ -159,7 +159,7 @@ def buildDataset(path_file: str, verbose=True) -> EntityHandler:
     return EntityHandler(DataFrame(t).drop_duplicates(), set_entities)
 
 
-def ensembleParser(path_file_a, path_file_b, verbose=True):
+def ensembleParser(path_file_a, path_file_b, verbose=True) -> tuple[tuple[EntityHandler, EntityHandler], DataFrame]:
     """
     ensembleParser is used to group in one single dataframe the both to dataset A and B.
 
@@ -225,10 +225,10 @@ def parse_args():
     p.add_argument('--bert', type=str,
                    help='Bert model provided by Huggingface', default="dbmdz/bert-base-italian-xxl-cased")
 
-    p.add_argument('--save_model', type=int,
+    p.add_argument('--save', type=int,
                    help='set 1 if you want save the model otherwise set 0', default=1)
 
-    p.add_argument('--type_eval', type=str,
+    p.add_argument('--eval', type=str,
                    help='define the type of evaluation: conlleval or df', default="conlleval")
 
     p.add_argument('--lr', type=float, help='Learning rate', default=0.001)
@@ -241,6 +241,6 @@ def parse_args():
 
     p.add_argument('--max_epoch', type=int, help='Max number of epochs', default=20)
 
-    p.add_argument('--early_stopping', type=float, help='Patience in early stopping', default=3)
+    p.add_argument('--patience', type=float, help='Patience in early stopping', default=3)
 
     return p.parse_known_args()

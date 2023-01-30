@@ -3,7 +3,7 @@ import torch
 from Configuration import Configuration
 from Parsing.parser_utils import parse_args
 from Prediction.Predictor import Predictor
-from Training.NERClassifier import NERClassifier
+from Training.NERCRFClassifier import NERCRFClassifier
 
 if __name__ == '__main__':
 
@@ -17,10 +17,15 @@ if __name__ == '__main__':
 
     models = args.models
 
-    modelA = NERClassifier(conf.bert, 9, frozen=False)
+    id2lab_group_a = {0: 'B-ACTI', 1: 'B-DISO', 2: 'B-DRUG', 3: 'B-SIGN', 4: 'I-ACTI', 5: 'I-DISO', 6: 'I-DRUG',
+                      7: 'I-SIGN', 8: 'O'}
+
+    id2lab_group_b = {0: 'B-BODY', 1: 'B-TREA', 2: 'I-BODY', 3: 'I-TREA', 4: 'O'}
+
+    modelA = NERCRFClassifier(conf.bert, id2lab_group_a)
     modelA.load_state_dict(torch.load(models[0]))
 
-    modelB = NERClassifier(conf.bert, 5, frozen=False)
+    modelB = NERCRFClassifier(conf.bert, id2lab_group_b)
     modelB.load_state_dict(torch.load(models[1]))
 
     if conf.cuda:
@@ -29,14 +34,5 @@ if __name__ == '__main__':
 
     predictor = Predictor(conf)
 
-    id2lab_group_a = {0: 'B-ACTI', 1: 'B-DISO', 2: 'B-DRUG', 3: 'B-SIGN', 4: 'I-ACTI', 5: 'I-DISO', 6: 'I-DRUG',
-                      7: 'I-SIGN', 8: 'O'}
-
-    id2lab_group_b = {0: 'B-BODY', 1: 'B-TREA', 2: 'I-BODY', 3: 'I-TREA', 4: 'O'}
-
     predictor.add_model("a", modelA, id2lab_group_a)
     predictor.add_model("b", modelB, id2lab_group_b)
-
-    print(predictor.predict("Hello!!"))
-
-    #  C:\ProgramData\Anaconda3\envs\deeplearning\python.exe train_model.py --models K:/NoSyncCache/Models/A/modelE1.pt K:/NoSyncCache/Models/B/modelH2.pt

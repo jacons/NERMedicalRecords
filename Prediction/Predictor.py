@@ -1,6 +1,6 @@
 from typing import Tuple
 
-from torch import IntTensor, BoolTensor, masked_select
+from torch import IntTensor, BoolTensor, masked_select, LongTensor, nn
 from transformers import BertTokenizerFast
 
 import Configuration
@@ -58,7 +58,7 @@ class Predictor:
                 unified.append(a + "/" + b)
         return unified
 
-    def add_model(self, group: str, model, dictionary: dict):
+    def add_model(self, group: str, model: nn.Module, dictionary: dict):
         model.eval()
         self.models[group] = (model, dictionary)
 
@@ -77,9 +77,13 @@ class Predictor:
 
         results = []
         for (model, dictionary) in self.models.values():
-            logits = model(input_ids, att_mask, None)
-            logits = logits[0].squeeze(0).argmax(1)
-            logits = masked_select(logits, tag_mask).tolist()
+            path, _ = model(input_ids, att_mask, None)[0][0]
+            path = LongTensor(path)
+
+            if self.conf.cuda:
+                path = path.to(self.conf.gpu)
+
+            logits = masked_select(path, tag_mask).tolist()
 
             results.append(
                 [lbl[2:] if lbl != "O" else "O" for lbl in self.map_id2lab(dictionary, logits)])

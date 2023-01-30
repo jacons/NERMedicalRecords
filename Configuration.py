@@ -28,6 +28,8 @@ class Configuration:
         self.cuda = True if torch.cuda.is_available() else False
         self.gpu = "cuda:0"
 
+        self.refresh_rate: int = 60  # interval of refresh in tqdm
+
     def update_params(self, param: str, value: float):
         self.param[param] = value
 
