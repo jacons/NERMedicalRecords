@@ -159,7 +159,7 @@ def buildDataset(path_file: str, verbose=True) -> EntityHandler:
     return EntityHandler(DataFrame(t).drop_duplicates(), set_entities)
 
 
-def ensembleParser(path_file_a, path_file_b, verbose=True) -> tuple[tuple[EntityHandler, EntityHandler], DataFrame]:
+def ensembleParser(path_file_a, path_file_b, verbose=True):
     """
     ensembleParser is used to group in one single dataframe the both to dataset A and B.
 
@@ -242,5 +242,7 @@ def parse_args():
     p.add_argument('--max_epoch', type=int, help='Max number of epochs', default=20)
 
     p.add_argument('--patience', type=float, help='Patience in early stopping', default=3)
+
+    p.add_argument('--refresh_rate', type=int, help='refresh rate in tqdm', default=60)
 
     return p.parse_known_args()

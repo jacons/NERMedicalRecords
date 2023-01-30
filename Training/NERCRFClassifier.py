@@ -12,7 +12,7 @@ class NERBertCRFClassification(BertPreTrainedModel):  # noqa
 
     _keys_to_ignore_on_load_unexpected = [r"pooler"]
 
-    def __init__(self, config, id2label: dict):
+    def __init__(self, config, id2label_dict: dict):
         super().__init__(config)
         self.num_labels = config.num_labels
 
@@ -29,7 +29,7 @@ class NERBertCRFClassification(BertPreTrainedModel):  # noqa
 
         self.crf_layer = ConditionalRandomField(num_tags=config.num_labels,
                                                 constraints=allowed_transitions(constraint_type="BIO",
-                                                                                labels=id2label))
+                                                                                labels=id2label_dict))
 
         # Initialize weights and apply final processing
         self.post_init()
@@ -86,7 +86,7 @@ class NERCRFClassifier(Module):
         super(NERCRFClassifier, self).__init__()
 
         num_labels = len(id2label)
-        self.bert = NERBertCRFClassification.from_pretrained(bert, num_labels=num_labels, id2label=id2label)
+        self.bert = NERBertCRFClassification.from_pretrained(bert, num_labels=num_labels, id2label_dict=id2label)
 
         return
 

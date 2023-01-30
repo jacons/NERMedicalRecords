@@ -15,10 +15,10 @@ class Configuration:
             "weight_decay": p.weight_decay,
             "batch_size": p.batch_size,
             "max_epoch": p.max_epoch,
-            "early_stopping": p.early_stopping,
+            "early_stopping": p.patience,
         }
 
-        self.save_model = True if p.save_model == 1 else False
+        self.save_model = True if p.save == 1 else False
         self.bert = p.bert  # Bert model as baseline
 
         self.model_name = p.model_name
@@ -28,7 +28,7 @@ class Configuration:
         self.cuda = True if torch.cuda.is_available() else False
         self.gpu = "cuda:0"
 
-        self.refresh_rate: int = 60  # interval of refresh in tqdm
+        self.refresh_rate: int = p.refresh_rate  # interval of refresh in tqdm
 
     def update_params(self, param: str, value: float):
         self.param[param] = value
