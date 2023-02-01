@@ -90,9 +90,9 @@ def train(model: nn.Module, e_handler: EntityHandler, df_train: DataFrame, df_va
 
         if model_version is not None:
             # save the model, if it is the best model until now
-            model_version.update(model, val_loss)
+            model_version.update(model, f1_score * -1)
 
         # Update the scheduler
         scheduler.step(val_loss)
         # Update the early stopping
-        es.update(val_loss)
+        es.update(f1_score * -1)
