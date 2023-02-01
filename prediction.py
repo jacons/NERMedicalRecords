@@ -7,7 +7,7 @@ from Training.NERCRFClassifier import NERCRFClassifier
 
 if __name__ == '__main__':
 
-    args = parse_args()
+    args, _ = parse_args()
 
     conf = Configuration(args)
     conf.show_parameters(["bert"])
@@ -36,3 +36,26 @@ if __name__ == '__main__':
 
     predictor.add_model("a", modelA, id2lab_group_a)
     predictor.add_model("b", modelB, id2lab_group_b)
+
+    while True:
+        sentence = input("Please enter a sentence:\n")
+        if sentence == "":
+            continue
+        if sentence == "exit":
+            break
+        else:
+            tag_pred, mask = predictor.predict(sentence)
+            result = [*zip(sentence.split(), tag_pred, mask)]
+
+            output = []
+            for (token, tag, mask) in result:
+
+                if tag:
+                    output.extend(["[", token, "]"])
+                else:
+                    output.append(token)
+
+                if tag and mask:
+                    output.append(tag)
+
+            print("\n" + " ".join(output) + "\n\n")
