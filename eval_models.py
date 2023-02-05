@@ -1,9 +1,21 @@
 import torch
+from pandas import DataFrame
 
 from Configuration import Configuration
 from Evaluation.metrics import eval_model
 from Parsing.parser_utils import parse_args, ensembleParser, holdout
 from Training.NERCRFClassifier import NERCRFClassifier
+
+
+def outputs(results, error_dict):
+    if isinstance(results, DataFrame):
+        print(results)
+    else:
+        print(results.getvalue())
+
+    if error_dict is not None:
+        print(error_dict)
+
 
 if __name__ == '__main__':
 
@@ -31,5 +43,12 @@ if __name__ == '__main__':
         modelA = modelA.to(conf.gpu)
         modelB = modelB.to(conf.gpu)
 
-    eval_model(modelA, df_test[["sentences", "labels_a"]], conf, handler_a, result=args.eval)
-    eval_model(modelB, df_test[["sentences", "labels_b"]], conf, handler_b, result=args.eval)
+    output_results, error_dict_A = eval_model(modelA, df_test[["sentences", "labels_a"]], conf, handler_a,
+                                              result=args.eval, return_dict=True)
+
+    outputs(output_results, error_dict_A)
+
+    output_results, error_dict_B = eval_model(modelB, df_test[["sentences", "labels_b"]], conf, handler_b,
+                                              result=args.eval, return_dict=True)
+
+    outputs(output_results, error_dict_B)

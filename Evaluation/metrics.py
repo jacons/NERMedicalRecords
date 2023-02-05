@@ -1,3 +1,7 @@
+import sys
+from collections import defaultdict
+from io import StringIO
+
 import torch
 from pandas import DataFrame
 from torch import Tensor, zeros, IntTensor, BoolTensor, LongTensor, masked_select, nn
@@ -46,13 +50,29 @@ def scores(confusion: Tensor, all_metrics=False):
         return f1.mean()
 
 
+class DictErrors:
+    def __init__(self):
+        self.e_dict = defaultdict(int)
+
+    def add(self, lst_tokens, lst_pred: Tensor, lst_labels: Tensor):
+
+        for token, pred, lab in zip(lst_tokens, lst_pred, lst_labels):
+            if pred != lab:
+                self.e_dict[token] += 1
+
+    def result(self) -> dict:
+        return dict(sorted(self.e_dict.items(), key=lambda item: item[1], reverse=True))
+
+
 def eval_model(model: nn.Module, dataset: DataFrame, conf: Configuration,
-               handler: EntityHandler, result="conlleval"):
+               handler: EntityHandler, return_dict: bool = False, result="conlleval"):
     model.eval()
     true_label, pred_label = [], []  # using for conlleval
     max_labels = len(handler.set_entities)
     confusion = zeros(size=(max_labels, max_labels))  # Confusion matrix
     tokenizer = BertTokenizerFast.from_pretrained(conf.bert)
+
+    dict_errors = DictErrors() if return_dict else None
 
     for row in tqdm(dataset.itertuples(), total=dataset.shape[0], desc="Evaluating", mininterval=conf.refresh_rate):
 
@@ -90,6 +110,9 @@ def eval_model(model: nn.Module, dataset: DataFrame, conf: Configuration,
         for lbl, pre in zip(labels, logits):
             confusion[lbl, pre] += 1
 
+        if dict_errors is not None:
+            dict_errors.add(tokens, logits, labels)
+
         labels = handler.map_id2lab(labels, is_tensor=True)
         logits = handler.map_id2lab(logits, is_tensor=True)
 
@@ -98,12 +121,15 @@ def eval_model(model: nn.Module, dataset: DataFrame, conf: Configuration,
 
     if result == "conlleval":
 
+        old_stdout = sys.stdout
+        sys.stdout = output_results = StringIO()
+
         # ConLL script evaluation https://github.com/sighsmile/conlleval
         evaluate(true_label, pred_label)
-        return
-    elif result == "df":
+        sys.stdout = old_stdout
 
-        df_result = scores(confusion, all_metrics=True)
-        df_result.index = handler.map_id2lab([*range(0, max_labels)])
-        print(df_result)
-        return
+    else:
+        output_results = scores(confusion, all_metrics=True)
+        output_results.index = handler.map_id2lab([*range(0, max_labels)])
+
+    return output_results, dict_errors.result() if return_dict else None

@@ -243,6 +243,6 @@ def parse_args():
 
     p.add_argument('--patience', type=float, help='Patience in early stopping', default=3)
 
-    p.add_argument('--refresh_rate', type=int, help='refresh rate in tqdm', default=60)
+    p.add_argument('--refresh_rate', type=int, help='Refresh rate in tqdm', default=60)
 
     return p.parse_known_args()
